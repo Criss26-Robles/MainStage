@@ -1,0 +1,20 @@
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: visible;
+}
+
+.site-header__search {
+  padding: 0 0 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.site-header--compact .navbar {
+  border-bottom: none;
+}

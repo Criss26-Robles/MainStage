@@ -1,0 +1,150 @@
+.profile-page {
+  padding-bottom: 80px;
+}
+
+.profile-page--loading {
+  padding: 160px 0;
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.profile-page__header {
+  padding: 32px 0 48px;
+  background: var(--gradient-hero);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-page__user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-page__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.profile-page__name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-page__email {
+  color: var(--gray-400);
+  font-size: 0.95rem;
+}
+
+.profile-page__content {
+  padding-top: 48px;
+}
+
+.profile-page__section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.profile-page__empty {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--gray-500);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-page__skeleton {
+  height: 120px;
+  border-radius: var(--radius-md);
+  background: var(--gray-900);
+  animation: shimmer 1.5s infinite;
+}
+
+.profile-page__orders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-order {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition);
+}
+
+.profile-order:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.profile-order__main h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-order__meta {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+}
+
+.profile-order__details {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.profile-order__code {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--gray-400);
+}
+
+.profile-order__qty {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+}
+
+.profile-order__price {
+  font-family: var(--font-price);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 640px) {
+  .profile-order {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-order__details {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
