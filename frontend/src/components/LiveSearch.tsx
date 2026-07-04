@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEventSearchStream } from '../hooks/useEventSearchStream';
 import { formatShortDate, formatPrice } from '../services/api';
+import { imageUrl } from '../utils/imageUrl';
 import './LiveSearch.css';
 
 export default function LiveSearch() {
@@ -74,7 +75,7 @@ export default function LiveSearch() {
                 {results.slice(0, 6).map((event) => (
                   <li key={event.id}>
                     <Link to={`/evento/${event.id}`} className="live-search__result" onClick={handleSelect}>
-                      <img src={event.image} alt="" className="live-search__result-img" />
+                      <img src={imageUrl(event.image, 'thumb')} alt="" className="live-search__result-img" />
                       <div className="live-search__result-info">
                         <span className="live-search__result-title">{event.title}</span>
                         <span className="live-search__result-meta">

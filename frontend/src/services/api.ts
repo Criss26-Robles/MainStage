@@ -1,4 +1,5 @@
 import type {
+  AdminEventPayload,
   AuthResponse,
   City,
   EventFilters,
@@ -125,7 +126,9 @@ export function formatPrice(price: number): string {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
-    minimumFractionDigits: 0
+    currencyDisplay: 'code',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(price);
 }
 
@@ -162,7 +165,7 @@ export async function fetchAdminEvents(): Promise<EventItem[]> {
   return handleResponse<EventItem[]>(res);
 }
 
-export async function createAdminEvent(data: Partial<EventItem>): Promise<EventItem> {
+export async function createAdminEvent(data: AdminEventPayload): Promise<EventItem> {
   const res = await fetch(`${API_BASE}/admin/events`, {
     method: 'POST',
     headers: authHeaders(),
@@ -173,7 +176,7 @@ export async function createAdminEvent(data: Partial<EventItem>): Promise<EventI
 
 export async function updateAdminEvent(
   id: string | number,
-  data: Partial<EventItem>
+  data: AdminEventPayload
 ): Promise<EventItem> {
   const res = await fetch(`${API_BASE}/admin/events/${id}`, {
     method: 'PUT',

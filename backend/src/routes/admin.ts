@@ -4,6 +4,40 @@ import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
 const router = Router();
 
+interface NormalizedTier {
+  name: string;
+  price: number;
+  available: number;
+  description: string;
+  sortOrder: number;
+}
+
+function normalizeTiers(raw: unknown): NormalizedTier[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((t: { name?: unknown; price?: unknown; available?: unknown; description?: unknown }, index: number) => ({
+      name: String(t?.name ?? '').trim(),
+      price: parseInt(String(t?.price), 10),
+      available: parseInt(String(t?.available), 10),
+      description: String(t?.description ?? ''),
+      sortOrder: index
+    }))
+    .filter(
+      (t: NormalizedTier) =>
+        t.name.length > 0 &&
+        Number.isFinite(t.price) &&
+        t.price >= 0 &&
+        Number.isFinite(t.available) &&
+        t.available >= 0
+    );
+}
+
+function normalizeFocus(value: unknown, fallback = 50): number {
+  const n = parseInt(String(value), 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(100, Math.max(0, n));
+}
+
 router.use(authMiddleware, adminMiddleware);
 
 router.get('/stats', async (_req, res) => {
@@ -42,17 +76,28 @@ router.get('/orders', async (_req, res) => {
 });
 
 router.get('/events', async (_req, res) => {
-  const events = await prisma.event.findMany({ orderBy: { date: 'asc' } });
+  const events = await prisma.event.findMany({
+    orderBy: { date: 'asc' },
+    include: { tiers: { orderBy: { sortOrder: 'asc' } } }
+  });
   res.json(events);
 });
 
 router.post('/events', async (req, res) => {
-  const required = ['title', 'artist', 'category', 'date', 'time', 'venue', 'city', 'department', 'price'];
+  const required = ['title', 'artist', 'category', 'date', 'time', 'venue', 'city', 'department'];
   for (const field of required) {
     if (req.body[field] === undefined || req.body[field] === '') {
       return res.status(400).json({ error: `El campo "${field}" es requerido` });
     }
   }
+
+  const tiers = normalizeTiers(req.body.tiers);
+  if (tiers.length === 0) {
+    return res.status(400).json({ error: 'Agrega al menos un tipo de boleta' });
+  }
+
+  const price = Math.min(...tiers.map((t) => t.price));
+  const availableTickets = tiers.reduce((sum, t) => sum + t.available, 0);
 
   const event = await prisma.event.create({
     data: {
@@ -64,15 +109,19 @@ router.post('/events', async (req, res) => {
       venue: req.body.venue,
       city: req.body.city,
       department: req.body.department,
-      price: parseInt(req.body.price, 10),
+      price,
       image: req.body.image || 'https://images.unsplash.com/photo-1459749411175-04bf3852a859?w=800&q=80',
+      imageFocusX: normalizeFocus(req.body.imageFocusX),
+      imageFocusY: normalizeFocus(req.body.imageFocusY),
       description: req.body.description || '',
-      availableTickets: parseInt(req.body.availableTickets, 10) || 100,
+      availableTickets,
       featured: !!req.body.featured,
       popular: !!req.body.popular,
       discount: parseInt(req.body.discount, 10) || 0,
-      tags: Array.isArray(req.body.tags) ? req.body.tags : []
-    }
+      tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+      tiers: { create: tiers }
+    },
+    include: { tiers: { orderBy: { sortOrder: 'asc' } } }
   });
 
   res.status(201).json(event);
@@ -83,29 +132,42 @@ router.put('/events/:id', async (req, res) => {
   const existing = await prisma.event.findUnique({ where: { id } });
   if (!existing) return res.status(404).json({ error: 'Evento no encontrado' });
 
-  const updated = await prisma.event.update({
-    where: { id },
-    data: {
-      title: req.body.title ?? existing.title,
-      artist: req.body.artist ?? existing.artist,
-      category: req.body.category ?? existing.category,
-      date: req.body.date ?? existing.date,
-      time: req.body.time ?? existing.time,
-      venue: req.body.venue ?? existing.venue,
-      city: req.body.city ?? existing.city,
-      department: req.body.department ?? existing.department,
-      price: req.body.price !== undefined ? parseInt(req.body.price, 10) : existing.price,
-      image: req.body.image ?? existing.image,
-      description: req.body.description ?? existing.description,
-      availableTickets:
-        req.body.availableTickets !== undefined
-          ? parseInt(req.body.availableTickets, 10)
-          : existing.availableTickets,
-      featured: req.body.featured !== undefined ? !!req.body.featured : existing.featured,
-      popular: req.body.popular !== undefined ? !!req.body.popular : existing.popular,
-      discount: req.body.discount !== undefined ? parseInt(req.body.discount, 10) : existing.discount,
-      tags: Array.isArray(req.body.tags) ? req.body.tags : existing.tags
+  const tiers = normalizeTiers(req.body.tiers);
+  const hasTiers = tiers.length > 0;
+  const price = hasTiers ? Math.min(...tiers.map((t) => t.price)) : existing.price;
+  const availableTickets = hasTiers
+    ? tiers.reduce((sum, t) => sum + t.available, 0)
+    : existing.availableTickets;
+
+  const updated = await prisma.$transaction(async (tx) => {
+    if (hasTiers) {
+      await tx.ticketTier.deleteMany({ where: { eventId: id } });
     }
+    return tx.event.update({
+      where: { id },
+      data: {
+        title: req.body.title ?? existing.title,
+        artist: req.body.artist ?? existing.artist,
+        category: req.body.category ?? existing.category,
+        date: req.body.date ?? existing.date,
+        time: req.body.time ?? existing.time,
+        venue: req.body.venue ?? existing.venue,
+        city: req.body.city ?? existing.city,
+        department: req.body.department ?? existing.department,
+        price,
+        image: req.body.image ?? existing.image,
+        imageFocusX: req.body.imageFocusX !== undefined ? normalizeFocus(req.body.imageFocusX) : existing.imageFocusX,
+        imageFocusY: req.body.imageFocusY !== undefined ? normalizeFocus(req.body.imageFocusY) : existing.imageFocusY,
+        description: req.body.description ?? existing.description,
+        availableTickets,
+        featured: req.body.featured !== undefined ? !!req.body.featured : existing.featured,
+        popular: req.body.popular !== undefined ? !!req.body.popular : existing.popular,
+        discount: req.body.discount !== undefined ? parseInt(req.body.discount, 10) : existing.discount,
+        tags: Array.isArray(req.body.tags) ? req.body.tags : existing.tags,
+        ...(hasTiers ? { tiers: { create: tiers } } : {})
+      },
+      include: { tiers: { orderBy: { sortOrder: 'asc' } } }
+    });
   });
 
   res.json(updated);

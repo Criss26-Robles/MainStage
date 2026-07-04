@@ -70,7 +70,10 @@ router.get('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (Number.isNaN(id)) return res.status(404).json({ error: 'Evento no encontrado' });
 
-  const event = await prisma.event.findUnique({ where: { id } });
+  const event = await prisma.event.findUnique({
+    where: { id },
+    include: { tiers: { orderBy: { sortOrder: 'asc' } } }
+  });
   if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json(event);
 });

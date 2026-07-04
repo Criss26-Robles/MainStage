@@ -18,7 +18,7 @@ model User {
 }
 
 model Event {
-  id               Int      @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
   title            String
   artist           String
   category         String
@@ -29,18 +29,33 @@ model Event {
   department       String
   price            Int
   image            String
+  imageFocusX      Int          @default(50)
+  imageFocusY      Int          @default(50)
   description      String
   availableTickets Int
-  featured         Boolean  @default(false)
-  popular          Boolean  @default(false)
-  discount         Int      @default(0)
+  featured         Boolean      @default(false)
+  popular          Boolean      @default(false)
+  discount         Int          @default(0)
   tags             String[]
-  createdAt        DateTime @default(now())
+  createdAt        DateTime     @default(now())
   orders           Order[]
+  tiers            TicketTier[]
+}
+
+model TicketTier {
+  id          Int         @id @default(autoincrement())
+  eventId     Int
+  name        String
+  price       Int
+  available   Int
+  description String      @default("")
+  sortOrder   Int         @default(0)
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
 }
 
 model Order {
-  id               Int      @id @default(autoincrement())
+  id               Int         @id @default(autoincrement())
   userId           Int
   eventId          Int
   eventTitle       String
@@ -51,9 +66,22 @@ model Order {
   buyerEmail       String
   totalPrice       Int
   confirmationCode String
-  createdAt        DateTime @default(now())
-  user             User     @relation(fields: [userId], references: [id])
-  event            Event    @relation(fields: [eventId], references: [id])
+  createdAt        DateTime    @default(now())
+  user             User        @relation(fields: [userId], references: [id])
+  event            Event       @relation(fields: [eventId], references: [id])
+  items            OrderItem[]
+}
+
+model OrderItem {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  tierId    Int?
+  tierName  String
+  unitPrice Int
+  quantity  Int
+  subtotal  Int
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tier      TicketTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
 }
 
 model Venue {

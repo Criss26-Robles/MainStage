@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { formatPrice, formatDate, getDiscountedPrice } from '../services/api';
 import type { EventItem } from '../types';
+import { imageUrl, imageObjectPosition } from '../utils/imageUrl';
 import './PopularEventCard.css';
 
 interface PopularEventCardProps {
@@ -29,7 +30,13 @@ export default function PopularEventCard({
     >
       <Link to={`/evento/${event.id}`} className="popular-card__link">
         <div className="popular-card__image-wrap">
-          <img src={event.image} alt={event.title} className="popular-card__image" loading="lazy" />
+          <img
+            src={imageUrl(event.image, 'card')}
+            alt={event.title}
+            className="popular-card__image"
+            loading="lazy"
+            style={{ objectPosition: imageObjectPosition({ x: event.imageFocusX, y: event.imageFocusY }) }}
+          />
           <div className="popular-card__overlay" />
           {hasDiscount && (
             <span className="popular-card__discount">-{event.discount}%</span>

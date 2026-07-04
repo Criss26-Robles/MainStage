@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { formatPrice, formatShortDate, getDiscountedPrice } from '../services/api';
 import type { EventItem } from '../types';
+import { imageUrl, imageObjectPosition } from '../utils/imageUrl';
 import './EventCard.css';
 
 interface EventCardProps {
@@ -25,7 +26,13 @@ export default function EventCard({ event, index = 0, variant = 'default' }: Eve
     >
       <Link to={`/evento/${event.id}`} className="event-card__link">
         <div className="event-card__image-wrap">
-          <img src={event.image} alt={event.title} className="event-card__image" loading="lazy" />
+          <img
+            src={imageUrl(event.image, 'card')}
+            alt={event.title}
+            className="event-card__image"
+            loading="lazy"
+            style={{ objectPosition: imageObjectPosition({ x: event.imageFocusX, y: event.imageFocusY }) }}
+          />
           <div className="event-card__overlay" />
           <div className="event-card__date-badge">
             <span className="event-card__date-day">{formatShortDate(event.date).split(' ')[0]}</span>

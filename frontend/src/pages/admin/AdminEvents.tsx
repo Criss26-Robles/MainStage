@@ -51,7 +51,7 @@ export default function AdminEvents() {
                 <th>Categoría</th>
                 <th>Ciudad</th>
                 <th>Fecha</th>
-                <th>Precio</th>
+                <th>Precio (COP)</th>
                 <th>Boletos</th>
                 <th>Estado</th>
                 <th>Acciones</th>

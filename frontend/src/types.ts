@@ -1,3 +1,13 @@
+export interface TicketTier {
+  id: number;
+  eventId?: number;
+  name: string;
+  price: number;
+  available: number;
+  description: string;
+  sortOrder: number;
+}
+
 export interface EventItem {
   id: number;
   title: string;
@@ -10,6 +20,8 @@ export interface EventItem {
   department: string;
   price: number;
   image: string;
+  imageFocusX?: number;
+  imageFocusY?: number;
   description: string;
   availableTickets: number;
   featured: boolean;
@@ -17,6 +29,7 @@ export interface EventItem {
   discount: number;
   tags: string[];
   createdAt?: string;
+  tiers?: TicketTier[];
 }
 
 export interface User {
@@ -25,6 +38,16 @@ export interface User {
   email: string;
   role: string;
   createdAt?: string;
+}
+
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  tierId: number | null;
+  tierName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
 }
 
 export interface Order {
@@ -40,6 +63,7 @@ export interface Order {
   totalPrice: number;
   confirmationCode: string;
   createdAt: string;
+  items?: OrderItem[];
 }
 
 export interface Venue {
@@ -77,7 +101,38 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface NewOrderItem {
+  tierId: number;
+  quantity: number;
+}
+
 export interface NewOrder {
   eventId: number;
-  quantity: number;
+  items: NewOrderItem[];
+}
+
+export interface TierInput {
+  name: string;
+  price: number;
+  available: number;
+  description?: string;
+}
+
+export interface AdminEventPayload {
+  title: string;
+  artist: string;
+  category: string;
+  date: string;
+  time: string;
+  venue: string;
+  city: string;
+  department: string;
+  image?: string;
+  imageFocusX?: number;
+  imageFocusY?: number;
+  description?: string;
+  featured?: boolean;
+  popular?: boolean;
+  discount?: number;
+  tiers: TierInput[];
 }

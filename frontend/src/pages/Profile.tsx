@@ -87,6 +87,11 @@ export default function Profile() {
                   <p className="profile-order__meta">
                     {order.eventCity} · {formatDate(order.eventDate)}
                   </p>
+                  {order.items && order.items.length > 0 && (
+                    <p className="profile-order__tiers">
+                      {order.items.map((it) => `${it.quantity}x ${it.tierName}`).join(' · ')}
+                    </p>
+                  )}
                 </div>
                 <div className="profile-order__details">
                   <span className="profile-order__code">{order.confirmationCode}</span>

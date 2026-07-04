@@ -4,7 +4,77 @@ import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const events: Prisma.EventCreateManyInput[] = [
+interface SeedEvent {
+  title: string;
+  artist: string;
+  category: string;
+  date: string;
+  time: string;
+  venue: string;
+  city: string;
+  department: string;
+  price: number;
+  image: string;
+  description: string;
+  availableTickets: number;
+  featured: boolean;
+  popular: boolean;
+  discount: number;
+  tags: string[];
+}
+
+interface SeedTier {
+  name: string;
+  price: number;
+  available: number;
+  description: string;
+  sortOrder: number;
+}
+
+function buildTiers(basePrice: number, totalAvailable: number): SeedTier[] {
+  if (basePrice === 0) {
+    return [
+      {
+        name: 'Entrada libre',
+        price: 0,
+        available: totalAvailable,
+        description: 'Acceso general sin costo',
+        sortOrder: 0
+      }
+    ];
+  }
+
+  const round = (n: number) => Math.round(n / 1000) * 1000;
+  const general = Math.round(totalAvailable * 0.6);
+  const vip = Math.round(totalAvailable * 0.3);
+  const palco = Math.max(totalAvailable - general - vip, 0);
+
+  return [
+    {
+      name: 'General',
+      price: basePrice,
+      available: general,
+      description: 'Acceso a la zona general del evento',
+      sortOrder: 0
+    },
+    {
+      name: 'VIP',
+      price: round(basePrice * 1.8),
+      available: vip,
+      description: 'Zona preferencial más cerca del escenario',
+      sortOrder: 1
+    },
+    {
+      name: 'Palco Platino',
+      price: round(basePrice * 2.5),
+      available: palco,
+      description: 'Palco exclusivo con la mejor vista y servicio premium',
+      sortOrder: 2
+    }
+  ];
+}
+
+const events: SeedEvent[] = [
   {
     title: 'Festival Estéreo Picnic',
     artist: 'Varios Artistas',
@@ -331,9 +401,25 @@ const venues: Prisma.VenueCreateManyInput[] = [
 ];
 
 async function main() {
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Order", "Event", "Venue" RESTART IDENTITY CASCADE');
+  await prisma.$executeRawUnsafe(
+    'TRUNCATE TABLE "OrderItem", "Order", "TicketTier", "Event", "Venue" RESTART IDENTITY CASCADE'
+  );
 
-  await prisma.event.createMany({ data: events });
+  for (const event of events) {
+    const tiers = buildTiers(event.price, event.availableTickets);
+    const price = Math.min(...tiers.map((t) => t.price));
+    const availableTickets = tiers.reduce((sum, t) => sum + t.available, 0);
+
+    await prisma.event.create({
+      data: {
+        ...event,
+        price,
+        availableTickets,
+        tiers: { create: tiers }
+      }
+    });
+  }
+
   await prisma.venue.createMany({ data: venues });
 
   const passwordHash = await bcrypt.hash('admin123', 10);

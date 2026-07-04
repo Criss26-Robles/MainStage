@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import TicketForm from '../components/TicketForm';
 import { fetchEvent, formatDate, formatPrice } from '../services/api';
 import type { EventItem } from '../types';
+import { heroImageProps } from '../utils/imageUrl';
 import './EventDetail.css';
 
 export default function EventDetail() {
@@ -41,10 +42,20 @@ export default function EventDetail() {
     );
   }
 
+  const heroImage = heroImageProps(event.image, {
+    x: event.imageFocusX,
+    y: event.imageFocusY
+  });
+
   return (
     <div className="event-detail">
       <div className="event-detail__hero">
-        <img src={event.image} alt={event.title} className="event-detail__hero-img" />
+        <img
+          {...heroImage}
+          alt={event.title}
+          className="event-detail__hero-img"
+          decoding="async"
+        />
         <div className="event-detail__hero-overlay" />
       </div>
 
