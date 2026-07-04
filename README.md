@@ -4,35 +4,78 @@ Plataforma web de venta de boletos para conciertos y eventos en **Colombia**.
 
 ## Stack
 
-- **Backend:** Express.js (API REST)
-- **Frontend:** React + Vite + Framer Motion
+- **Backend:** Node.js + Express + TypeScript
+- **ORM:** Prisma
+- **Base de datos:** PostgreSQL
+- **Frontend:** React + Vite + TypeScript + Framer Motion
+- **Estado:** Redux Toolkit + React Redux
+- **Reactividad:** RxJS (búsqueda instantánea)
 
 ## Estructura
 
 ```
 MainStage/
-├── backend/          # API Express
-│   ├── data/         # Datos de eventos (mock)
-│   ├── routes/       # Rutas de eventos y órdenes
-│   └── server.js
-└── frontend/         # App React
+├── backend/              # API Express en TypeScript
+│   ├── prisma/
+│   │   ├── schema.prisma # Modelos (User, Event, Order, Venue)
+│   │   ├── migrations/   # Migraciones versionadas
+│   │   └── seed.ts       # Datos iniciales (eventos, venues, admin)
+│   ├── src/
+│   │   ├── lib/          # Cliente Prisma compartido
+│   │   ├── middleware/   # Autenticación JWT y rol admin
+│   │   ├── routes/       # events, orders, auth, venues, admin
+│   │   ├── types/        # Tipos compartidos
+│   │   └── server.ts     # Bootstrap de la API
+│   ├── .env              # DATABASE_URL, JWT_SECRET, PORT (no se versiona)
+│   └── tsconfig.json
+└── frontend/             # App React + TypeScript (Vite)
+    ├── tsconfig.json
     └── src/
-        ├── components/
-        ├── pages/
-        └── services/
+        ├── components/   # Componentes .tsx (props tipadas)
+        ├── pages/        # Vistas y panel admin
+        ├── hooks/        # useAuth, useEventSearchStream (RxJS)
+        ├── store/        # Redux Toolkit (slices + hooks tipados)
+        ├── services/     # Cliente de API tipado
+        └── types.ts      # Interfaces de dominio (Event, Order, User, Venue)
 ```
 
 ## Inicio rápido
+
+### Requisitos
+
+- Node.js 18+
+- PostgreSQL 14+ corriendo localmente
 
 ### Backend
 
 ```bash
 cd backend
 npm install
+
+# 1. Configura las variables de entorno
+cp .env.example .env
+# Edita .env y coloca tu contraseña de PostgreSQL en DATABASE_URL
+
+# 2. Crea la base de datos, aplica las tablas y carga los datos iniciales
+npm run prisma:migrate      # crea la BD "mainstage" y las tablas
+npm run db:seed             # 14 eventos, 6 escenarios y usuario admin
+
+# 3. Levanta la API
 npm run dev
 ```
 
 La API corre en `http://localhost:3001`
+
+**Scripts disponibles:**
+
+| Script | Descripción |
+|--------|-------------|
+| `npm run dev` | Levanta la API en modo desarrollo (ts-node) |
+| `npm run build` | Compila TypeScript a `dist/` |
+| `npm start` | Ejecuta la versión compilada |
+| `npm run prisma:migrate` | Crea/actualiza la base de datos con migraciones |
+| `npm run db:seed` | Carga los datos iniciales |
+| `npm run db:reset` | Reinicia la BD y vuelve a sembrar (borra todo) |
 
 ### Frontend
 
