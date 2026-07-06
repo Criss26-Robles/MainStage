@@ -173,8 +173,10 @@
     grid-column: auto;
   }
 
-  .event-search__actions {
+  .event-search__actions,
+  .event-search--bar .event-search__actions {
     flex-direction: column;
+    width: 100%;
   }
 
   .event-search--bar .event-search__submit,
