@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import EventSearch from './EventSearch';
@@ -10,8 +11,27 @@ export default function SiteHeader() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
+  const lastScrollY = useRef(0);
 
   const hideSearch = AUTH_ROUTES.includes(location.pathname);
+
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+    setHiddenOnScroll(false);
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const pastHeader = currentScrollY > 120;
+
+      setHiddenOnScroll(scrollingDown && pastHeader);
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
 
   const filters = {
     artist: searchParams.get('artist') || '',
@@ -36,7 +56,11 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className={`site-header ${hideSearch ? 'site-header--compact' : ''}`}>
+    <header
+      className={`site-header ${hideSearch ? 'site-header--compact' : ''} ${
+        hiddenOnScroll ? 'site-header--hidden' : ''
+      }`}
+    >
       <Navbar />
       {!hideSearch && (
         <div className="site-header__search">
