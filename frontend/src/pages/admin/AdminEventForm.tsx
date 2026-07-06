@@ -226,8 +226,8 @@ export default function AdminEventForm() {
 
         <div className="admin-form__field">
           <label>URL de imagen</label>
-          <input value={form.image} onChange={e => handleChange('image', e.target.value)} placeholder="https://images.unsplash.com/... o enlace de Unsplash" />
-          <span className="admin-form__hint">Usa el enlace directo de la imagen o de Unsplash. Luego ajusta el encuadre abajo.</span>
+          <input value={form.image} onChange={e => handleChange('image', e.target.value)} placeholder="https://... enlace directo a la imagen (.jpg, .png, etc.)" />
+          <span className="admin-form__hint">Pega un enlace directo a la imagen (Unsplash, Imgur, tu web, etc.). Debe terminar en .jpg/.png o ser un CDN de imagen. No hay subida desde el PC todavía.</span>
           {form.image.trim() && (
             <ImageFocusPicker
               imageUrl={form.image}

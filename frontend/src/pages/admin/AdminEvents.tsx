@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchAdminEvents, deleteAdminEvent, formatPrice, formatShortDate } from '../../services/api';
+import DeleteEventModal from '../../components/admin/DeleteEventModal';
 import type { EventItem } from '../../types';
 import './AdminLayout.css';
 
 export default function AdminEvents() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<EventItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const loadEvents = () => {
     setLoading(true);
@@ -18,13 +22,29 @@ export default function AdminEvents() {
 
   useEffect(() => { loadEvents(); }, []);
 
-  const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`¿Eliminar "${title}"?`)) return;
+  const openDeleteModal = (event: EventItem) => {
+    setDeleteError('');
+    setPendingDelete(event);
+  };
+
+  const closeDeleteModal = () => {
+    if (deleting) return;
+    setPendingDelete(null);
+    setDeleteError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError('');
     try {
-      await deleteAdminEvent(id);
+      await deleteAdminEvent(pendingDelete.id);
+      setPendingDelete(null);
       loadEvents();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al eliminar');
+      setDeleteError(err instanceof Error ? err.message : 'Error al eliminar el evento');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -80,7 +100,11 @@ export default function AdminEvents() {
                       <Link to={`/admin/eventos/${event.id}/editar`} className="admin-btn admin-btn--edit">
                         Editar
                       </Link>
-                      <button className="admin-btn admin-btn--delete" onClick={() => handleDelete(event.id, event.title)}>
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn--delete"
+                        onClick={() => openDeleteModal(event)}
+                      >
                         Eliminar
                       </button>
                     </div>
@@ -91,6 +115,15 @@ export default function AdminEvents() {
           </table>
         </div>
       )}
+
+      <DeleteEventModal
+        event={pendingDelete}
+        open={!!pendingDelete}
+        deleting={deleting}
+        error={deleteError}
+        onCancel={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
