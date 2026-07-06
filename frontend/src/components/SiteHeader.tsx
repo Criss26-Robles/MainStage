@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import EventSearch from './EventSearch';
@@ -6,27 +6,28 @@ import LiveSearch from './LiveSearch';
 import './SiteHeader.css';
 
 const AUTH_ROUTES = ['/login', '/registro'];
+const HIDE_AFTER_SCROLL = 120;
+const SHOW_AT_TOP = 8;
 
 export default function SiteHeader() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
-  const lastScrollY = useRef(0);
 
   const hideSearch = AUTH_ROUTES.includes(location.pathname);
 
   useEffect(() => {
-    lastScrollY.current = window.scrollY;
     setHiddenOnScroll(false);
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const scrollingDown = currentScrollY > lastScrollY.current;
-      const pastHeader = currentScrollY > 120;
 
-      setHiddenOnScroll(scrollingDown && pastHeader);
-      lastScrollY.current = currentScrollY;
+      setHiddenOnScroll((isHidden) => {
+        if (currentScrollY <= SHOW_AT_TOP) return false;
+        if (currentScrollY > HIDE_AFTER_SCROLL) return true;
+        return isHidden;
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
