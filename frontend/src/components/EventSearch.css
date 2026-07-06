@@ -169,6 +169,27 @@
   }
 }
 
+@media (max-width: 1180px) {
+  .event-search--bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-search--bar .event-search__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .event-search--bar .event-search__actions {
+    width: 100%;
+  }
+
+  .event-search--bar .event-search__submit,
+  .event-search--bar .event-search__clear {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 580px) {
   .event-search__fields,
   .event-search--bar .event-search__fields {
