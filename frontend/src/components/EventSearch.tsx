@@ -172,11 +172,14 @@ export default function EventSearch({
           </svg>
           Buscar eventos
         </button>
-        {hasFilters && (
-          <button type="button" className="btn btn-outline event-search__clear" onClick={handleClear}>
-            Limpiar
-          </button>
-        )}
+        <button
+          type="button"
+          className="btn btn-outline event-search__clear"
+          onClick={handleClear}
+          disabled={!hasFilters}
+        >
+          Limpiar
+        </button>
       </div>
     </motion.form>
   );
