@@ -165,3 +165,79 @@
   font-size: 0.95rem;
   letter-spacing: -0.02em;
 }
+
+@media (max-width: 580px) {
+  .event-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .event-card__link {
+    height: 100%;
+  }
+
+  .event-card__image-wrap,
+  .event-card--wide .event-card__image-wrap {
+    aspect-ratio: 16/10;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .event-card__body {
+    padding: 18px;
+  }
+
+  .event-card__date-badge {
+    top: 12px;
+    left: 12px;
+    min-width: 44px;
+    padding: 7px 9px;
+  }
+
+  .event-card__date-day {
+    font-size: 1rem;
+  }
+
+  .event-card__date-month {
+    font-size: 0.58rem;
+  }
+
+  .event-card__featured {
+    top: 12px;
+    right: 12px;
+    max-width: calc(100% - 76px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-card__discount {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .event-card__title {
+    font-size: 1.05rem;
+    margin-top: 8px;
+  }
+
+  .event-card__artist {
+    margin-bottom: 14px;
+  }
+
+  .event-card__meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .event-card__venue {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .event-card__price {
+    font-size: 1rem;
+  }
+}
