@@ -132,6 +132,12 @@
   flex-shrink: 0;
 }
 
+.event-search__clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .event-search--bar .event-search__clear {
   min-height: 62px;
   padding: 14px 18px;
