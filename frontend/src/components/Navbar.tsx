@@ -46,6 +46,7 @@ const categories = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ export default function Navbar() {
   useEffect(() => {
     setMenuOpen(false);
     setUserMenuOpen(false);
+    setLogoutConfirmOpen(false);
   }, [location]);
 
   useEffect(() => {
@@ -73,8 +75,15 @@ export default function Navbar() {
 
   const activeCategory = new URLSearchParams(location.search).get('category');
 
+  const requestLogout = () => {
+    setUserMenuOpen(false);
+    setMenuOpen(false);
+    setLogoutConfirmOpen(true);
+  };
+
   const handleLogout = () => {
     logout();
+    setLogoutConfirmOpen(false);
     setUserMenuOpen(false);
     navigate('/');
   };
@@ -170,7 +179,7 @@ export default function Navbar() {
                   {isAdmin && (
                     <Link to="/admin" className="navbar__user-menu-item">Panel admin</Link>
                   )}
-                  <button className="navbar__user-menu-item navbar__user-menu-item--logout" onClick={handleLogout}>
+                  <button className="navbar__user-menu-item navbar__user-menu-item--logout" onClick={requestLogout}>
                     Cerrar sesión
                   </button>
                 </div>
@@ -199,6 +208,34 @@ export default function Navbar() {
           <span />
         </button>
       </div>
+
+      {logoutConfirmOpen && (
+        <div className="logout-confirm" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title">
+          <div className="logout-confirm__panel">
+            <p className="logout-confirm__eyebrow">Confirmar acción</p>
+            <h2 id="logout-confirm-title" className="logout-confirm__title">Cerrar sesión</h2>
+            <p className="logout-confirm__text">
+              Tu sesión actual se cerrará y volverás al inicio. Puedes ingresar nuevamente cuando quieras.
+            </p>
+            <div className="logout-confirm__actions">
+              <button
+                type="button"
+                className="btn btn-outline logout-confirm__cancel"
+                onClick={() => setLogoutConfirmOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary logout-confirm__submit"
+                onClick={handleLogout}
+              >
+                Sí, cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
