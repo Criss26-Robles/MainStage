@@ -23,6 +23,10 @@ export default function ImageFocusPicker({
   const frameRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const objectPosition = imageObjectPosition({ x: focusX, y: focusY });
+  const focusImageStyle = {
+    objectPosition,
+    transformOrigin: objectPosition
+  };
   const previewTitle = title.trim() || 'Título del evento';
   const previewArtist = artist.trim() || 'Artista / organizador';
 
@@ -82,7 +86,7 @@ export default function ImageFocusPicker({
             <img
               src={buildImageUrl(imageUrl, 'hero')}
               alt=""
-              style={{ objectPosition }}
+              style={focusImageStyle}
               draggable={false}
             />
             <span
@@ -99,7 +103,7 @@ export default function ImageFocusPicker({
             <img
               src={buildImageUrl(imageUrl, 'hero')}
               alt=""
-              style={{ objectPosition }}
+              style={focusImageStyle}
               draggable={false}
             />
             <div className="image-focus__site-overlay" />

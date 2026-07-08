@@ -78,6 +78,14 @@
   user-select: none;
 }
 
+.image-focus__frame img {
+  transform: scale(1.16);
+}
+
+.image-focus__site-mock img {
+  transform: scale(1.08);
+}
+
 .image-focus__marker {
   position: absolute;
   width: 22px;
