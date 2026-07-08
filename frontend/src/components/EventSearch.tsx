@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -19,6 +19,22 @@ interface EventSearchProps {
   onSearch?: (filters: Record<string, string>) => void;
 }
 
+interface FilterSelectOption {
+  value: string;
+  label: string;
+}
+
+interface FilterSelectProps {
+  id: string;
+  name: 'city' | 'category';
+  value: string;
+  placeholder: string;
+  options: FilterSelectOption[];
+  isOpen: boolean;
+  onToggle: (name: 'city' | 'category') => void;
+  onChange: (value: string) => void;
+}
+
 const emptyFilters: SearchFilters = {
   artist: '',
   city: '',
@@ -26,15 +42,94 @@ const emptyFilters: SearchFilters = {
   date: ''
 };
 
+function FilterSelect({
+  id,
+  name,
+  value,
+  placeholder,
+  options,
+  isOpen,
+  onToggle,
+  onChange
+}: FilterSelectProps) {
+  const selectedLabel = options.find(option => option.value === value)?.label || placeholder;
+
+  return (
+    <div className={`event-search__select ${isOpen ? 'event-search__select--open' : ''}`}>
+      <button
+        id={id}
+        type="button"
+        className="event-search__select-trigger"
+        onClick={() => onToggle(name)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span>{selectedLabel}</span>
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden>
+          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="event-search__select-menu" role="listbox" aria-labelledby={id}>
+          {options.map(option => {
+            const active = option.value === value;
+            return (
+              <button
+                key={`${name}-${option.value || 'all'}`}
+                type="button"
+                className={`event-search__select-option ${
+                  active ? 'event-search__select-option--active' : ''
+                }`}
+                onClick={() => onChange(option.value)}
+                role="option"
+                aria-selected={active}
+              >
+                <span>{option.label}</span>
+                {active && (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EventSearch({
   variant = 'bar',
   initialFilters = {},
   onSearch
 }: EventSearchProps) {
+  const searchRef = useRef<HTMLFormElement>(null);
   const [filters, setFilters] = useState<SearchFilters>({ ...emptyFilters, ...initialFilters });
   const [categories, setCategories] = useState<string[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [openSelect, setOpenSelect] = useState<'city' | 'category' | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setOpenSelect(null);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenSelect(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   useEffect(() => {
     Promise.all([fetchCategories(), fetchCities()])
@@ -51,6 +146,11 @@ export default function EventSearch({
 
   const handleChange = (field: keyof SearchFilters, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSelectChange = (field: 'city' | 'category', value: string) => {
+    handleChange(field, value);
+    setOpenSelect(null);
   };
 
   const buildParams = (f: SearchFilters) => {
@@ -77,6 +177,7 @@ export default function EventSearch({
 
   const handleClear = () => {
     setFilters(emptyFilters);
+    setOpenSelect(null);
     if (onSearch) {
       onSearch({});
     } else {
@@ -85,9 +186,18 @@ export default function EventSearch({
   };
 
   const hasFilters = Object.values(filters).some(v => v);
+  const cityOptions = [
+    { value: '', label: 'Todas las ciudades' },
+    ...cities.map(c => ({ value: c.name, label: c.name }))
+  ];
+  const categoryOptions = [
+    { value: '', label: 'Todas las categorías' },
+    ...categories.map(cat => ({ value: cat, label: cat }))
+  ];
 
   return (
     <motion.form
+      ref={searchRef}
       className={`event-search event-search--${variant}`}
       onSubmit={handleSubmit}
       initial={{ opacity: 0, y: 8 }}
@@ -118,16 +228,16 @@ export default function EventSearch({
             </svg>
             Ciudad
           </label>
-          <select
+          <FilterSelect
             id="search-city"
+            name="city"
             value={filters.city}
-            onChange={(e) => handleChange('city', e.target.value)}
-          >
-            <option value="">Todas las ciudades</option>
-            {cities.map(c => (
-              <option key={c.name} value={c.name}>{c.name}</option>
-            ))}
-          </select>
+            placeholder="Todas las ciudades"
+            options={cityOptions}
+            isOpen={openSelect === 'city'}
+            onToggle={(name) => setOpenSelect(current => (current === name ? null : name))}
+            onChange={(value) => handleSelectChange('city', value)}
+          />
         </div>
 
         <div className="event-search__field">
@@ -137,16 +247,16 @@ export default function EventSearch({
             </svg>
             Categoría
           </label>
-          <select
+          <FilterSelect
             id="search-category"
+            name="category"
             value={filters.category}
-            onChange={(e) => handleChange('category', e.target.value)}
-          >
-            <option value="">Todas las categorías</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+            placeholder="Todas las categorías"
+            options={categoryOptions}
+            isOpen={openSelect === 'category'}
+            onToggle={(name) => setOpenSelect(current => (current === name ? null : name))}
+            onChange={(value) => handleSelectChange('category', value)}
+          />
         </div>
 
         <div className="event-search__field">
