@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -94,6 +95,35 @@ export default function Navbar() {
     .slice(0, 2)
     .join('')
     .toUpperCase() || '';
+
+  const logoutConfirmDialog = logoutConfirmOpen ? createPortal(
+    <div className="logout-confirm" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title">
+      <div className="logout-confirm__panel">
+        <p className="logout-confirm__eyebrow">Confirmar acción</p>
+        <h2 id="logout-confirm-title" className="logout-confirm__title">Cerrar sesión</h2>
+        <p className="logout-confirm__text">
+          Tu sesión actual se cerrará y volverás al inicio. Puedes ingresar nuevamente cuando quieras.
+        </p>
+        <div className="logout-confirm__actions">
+          <button
+            type="button"
+            className="btn btn-outline logout-confirm__cancel"
+            onClick={() => setLogoutConfirmOpen(false)}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary logout-confirm__submit"
+            onClick={handleLogout}
+          >
+            Sí, cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  ) : null;
 
   return (
     <div className="navbar">
@@ -209,33 +239,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {logoutConfirmOpen && (
-        <div className="logout-confirm" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title">
-          <div className="logout-confirm__panel">
-            <p className="logout-confirm__eyebrow">Confirmar acción</p>
-            <h2 id="logout-confirm-title" className="logout-confirm__title">Cerrar sesión</h2>
-            <p className="logout-confirm__text">
-              Tu sesión actual se cerrará y volverás al inicio. Puedes ingresar nuevamente cuando quieras.
-            </p>
-            <div className="logout-confirm__actions">
-              <button
-                type="button"
-                className="btn btn-outline logout-confirm__cancel"
-                onClick={() => setLogoutConfirmOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary logout-confirm__submit"
-                onClick={handleLogout}
-              >
-                Sí, cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {logoutConfirmDialog}
     </div>
   );
 }
