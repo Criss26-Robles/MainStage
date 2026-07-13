@@ -20,6 +20,8 @@ interface EventFormState {
   featured: boolean;
   popular: boolean;
   discount: string;
+  serviceFeePercent: string;
+  salePhase: string;
 }
 
 interface TierRow {
@@ -34,7 +36,8 @@ const CATEGORIES = ['Concierto', 'Festival', 'Teatro', 'Museo', 'Comedia', 'Elec
 const EMPTY: EventFormState = {
   title: '', artist: '', category: 'Concierto', date: '', time: '',
   venue: '', city: '', department: '', image: '', description: '',
-  featured: false, popular: false, discount: '0'
+  featured: false, popular: false, discount: '0',
+  serviceFeePercent: '10', salePhase: 'general'
 };
 
 const EMPTY_TIER: TierRow = { name: '', price: '', available: '', description: '' };
@@ -70,7 +73,9 @@ export default function AdminEventForm() {
           description: event.description,
           featured: event.featured,
           popular: event.popular,
-          discount: String(event.discount || 0)
+          discount: String(event.discount || 0),
+          serviceFeePercent: String(event.serviceFeePercent ?? 10),
+          salePhase: event.salePhase ?? 'general'
         });
         setImageFocusX(event.imageFocusX ?? 50);
         setImageFocusY(event.imageFocusY ?? 50);
@@ -145,6 +150,8 @@ export default function AdminEventForm() {
       featured: form.featured,
       popular: form.popular,
       discount: parseInt(form.discount, 10) || 0,
+      serviceFeePercent: parseInt(form.serviceFeePercent, 10) || 10,
+      salePhase: form.salePhase,
       tiers: cleanedTiers
     };
 
@@ -219,9 +226,22 @@ export default function AdminEventForm() {
           </div>
         </div>
 
-        <div className="admin-form__field">
-          <label>Descuento (%)</label>
-          <input type="number" min="0" max="100" value={form.discount} onChange={e => handleChange('discount', e.target.value)} />
+        <div className="admin-form__row">
+          <div className="admin-form__field">
+            <label>Descuento (%)</label>
+            <input type="number" min="0" max="100" value={form.discount} onChange={e => handleChange('discount', e.target.value)} />
+          </div>
+          <div className="admin-form__field">
+            <label>Comisión de servicio (%)</label>
+            <input type="number" min="0" max="50" value={form.serviceFeePercent} onChange={e => handleChange('serviceFeePercent', e.target.value)} />
+          </div>
+          <div className="admin-form__field">
+            <label>Fase de venta</label>
+            <select value={form.salePhase} onChange={e => handleChange('salePhase', e.target.value)}>
+              <option value="general">Venta general</option>
+              <option value="presale">Preventa (solo miembros)</option>
+            </select>
+          </div>
         </div>
 
         <div className="admin-form__field">

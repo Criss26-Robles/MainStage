@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
+import { authMiddleware } from '../middleware/auth';
+import { MAX_TICKETS_PER_USER_PER_EVENT } from '../lib/pricing';
 
 const router = Router();
 
@@ -64,6 +66,30 @@ router.get('/cities', async (_req, res) => {
     cityMap[e.city].count++;
   });
   res.json(Object.values(cityMap).sort((a, b) => b.count - a.count));
+});
+
+router.get('/:id/purchase-info', authMiddleware, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) return res.status(404).json({ error: 'Evento no encontrado' });
+
+  const event = await prisma.event.findUnique({ where: { id } });
+  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+  const purchased = await prisma.order.aggregate({
+    where: { userId: req.user!.id, eventId: id },
+    _sum: { quantity: true }
+  });
+  const purchasedQty = purchased._sum.quantity ?? 0;
+  const remaining = Math.max(MAX_TICKETS_PER_USER_PER_EVENT - purchasedQty, 0);
+  const canPurchasePresale = event.salePhase !== 'presale' || req.user!.presaleAccess;
+
+  res.json({
+    purchasedQty,
+    maxAllowed: MAX_TICKETS_PER_USER_PER_EVENT,
+    remaining,
+    canPurchasePresale,
+    salePhase: event.salePhase
+  });
 });
 
 router.get('/:id', async (req, res) => {

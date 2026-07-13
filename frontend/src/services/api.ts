@@ -6,6 +6,7 @@ import type {
   EventItem,
   NewOrder,
   Order,
+  PurchaseInfo,
   User,
   Venue
 } from '../types';
@@ -77,6 +78,23 @@ export function getDiscountedPrice(price: number, discount = 0): number {
   if (price === 0) return 0;
   if (!discount) return price;
   return Math.round(price * (1 - discount / 100));
+}
+
+export function getServiceFee(unitPrice: number, serviceFeePercent = 0): number {
+  if (unitPrice === 0) return 0;
+  return Math.round(unitPrice * (serviceFeePercent / 100));
+}
+
+export function getFinalPrice(price: number, discount = 0, serviceFeePercent = 0): number {
+  const unitPrice = getDiscountedPrice(price, discount);
+  return unitPrice + getServiceFee(unitPrice, serviceFeePercent);
+}
+
+export async function fetchPurchaseInfo(eventId: string | number): Promise<PurchaseInfo> {
+  const res = await fetch(`${API_BASE}/events/${eventId}/purchase-info`, {
+    headers: authHeaders()
+  });
+  return handleResponse<PurchaseInfo>(res);
 }
 
 export async function fetchMyOrders(): Promise<Order[]> {
@@ -192,6 +210,23 @@ export async function deleteAdminEvent(id: string | number): Promise<{ message: 
     headers: authHeaders()
   });
   return handleResponse<{ message: string }>(res);
+}
+
+export async function fetchAdminUsers(): Promise<User[]> {
+  const res = await fetch(`${API_BASE}/admin/users`, { headers: authHeaders() });
+  return handleResponse<User[]>(res);
+}
+
+export async function toggleUserPresaleAccess(
+  userId: number,
+  presaleAccess?: boolean
+): Promise<User> {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/presale`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(presaleAccess !== undefined ? { presaleAccess } : {})
+  });
+  return handleResponse<User>(res);
 }
 
 export interface AdminStatsTopEvent {

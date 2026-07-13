@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TicketForm from '../components/TicketForm';
-import { fetchEvent, formatDate, formatPrice } from '../services/api';
+import { fetchEvent, formatDate, formatPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { heroImageProps } from '../utils/imageUrl';
 import './EventDetail.css';
@@ -117,7 +117,14 @@ export default function EventDetail() {
               </svg>
               <div>
                 <span className="event-detail__meta-label">Desde</span>
-                <span className="event-detail__meta-price">{formatPrice(event.price)}</span>
+                <span className="event-detail__meta-price">
+                  {formatPrice(getFinalPrice(event.price, event.discount, event.serviceFeePercent ?? 10))}
+                </span>
+                {event.price > 0 && (event.serviceFeePercent ?? 10) > 0 && (
+                  <span className="event-detail__meta-fee">
+                    incl. comisión {event.serviceFeePercent ?? 10}%
+                  </span>
+                )}
               </div>
             </div>
           </div>

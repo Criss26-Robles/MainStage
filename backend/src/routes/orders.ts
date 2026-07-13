@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { authMiddleware } from '../middleware/auth';
+import {
+  getTicketUnitPrice,
+  getServiceFee,
+  getFinalUnitPrice,
+  MAX_TICKETS_PER_USER_PER_EVENT
+} from '../lib/pricing';
 
 const router = Router();
 
@@ -33,16 +39,40 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 
   try {
+    const event = await prisma.event.findUnique({ where: { id: Number(eventId) } });
+    if (!event) {
+      return res.status(404).json({ error: 'Evento no encontrado' });
+    }
+
+    if (event.salePhase === 'presale' && !req.user!.presaleAccess) {
+      return res.status(403).json({
+        error: 'Este evento está en preventa. Necesitas acceso de membresía para comprar.'
+      });
+    }
+
+    const purchased = await prisma.order.aggregate({
+      where: { userId: req.user!.id, eventId: event.id },
+      _sum: { quantity: true }
+    });
+    const previouslyPurchased = purchased._sum.quantity ?? 0;
+
+    if (previouslyPurchased + totalQuantity > MAX_TICKETS_PER_USER_PER_EVENT) {
+      const remaining = Math.max(MAX_TICKETS_PER_USER_PER_EVENT - previouslyPurchased, 0);
+      return res.status(400).json({
+        error:
+          remaining > 0
+            ? `Solo puedes comprar ${remaining} boleta(s) más para este evento (máximo ${MAX_TICKETS_PER_USER_PER_EVENT} por persona).`
+            : `Ya alcanzaste el límite de ${MAX_TICKETS_PER_USER_PER_EVENT} boletas para este evento.`
+      });
+    }
+
     const order = await prisma.$transaction(async (tx) => {
-      const event = await tx.event.findUnique({ where: { id: Number(eventId) } });
-      if (!event) throw new Error('EVENT_NOT_FOUND');
-
-      const discountFactor = event.discount > 0 ? 1 - event.discount / 100 : 1;
-
       const orderItemsData: {
         tierId: number;
         tierName: string;
         unitPrice: number;
+        serviceFee: number;
+        finalUnitPrice: number;
         quantity: number;
         subtotal: number;
       }[] = [];
@@ -53,8 +83,10 @@ router.post('/', authMiddleware, async (req, res) => {
         if (!tier || tier.eventId !== event.id) throw new Error('TIER_NOT_FOUND');
         if (item.quantity > tier.available) throw new Error('NOT_ENOUGH_TICKETS');
 
-        const unitPrice = Math.round(tier.price * discountFactor);
-        const subtotal = unitPrice * item.quantity;
+        const unitPrice = getTicketUnitPrice(tier.price, event.discount);
+        const serviceFee = getServiceFee(unitPrice, event.serviceFeePercent);
+        const finalUnitPrice = getFinalUnitPrice(tier.price, event.discount, event.serviceFeePercent);
+        const subtotal = finalUnitPrice * item.quantity;
         totalPrice += subtotal;
 
         await tx.ticketTier.update({
@@ -66,6 +98,8 @@ router.post('/', authMiddleware, async (req, res) => {
           tierId: tier.id,
           tierName: tier.name,
           unitPrice,
+          serviceFee,
+          finalUnitPrice,
           quantity: item.quantity,
           subtotal
         });
@@ -96,9 +130,6 @@ router.post('/', authMiddleware, async (req, res) => {
 
     res.status(201).json(order);
   } catch (err) {
-    if (err instanceof Error && err.message === 'EVENT_NOT_FOUND') {
-      return res.status(404).json({ error: 'Evento no encontrado' });
-    }
     if (err instanceof Error && err.message === 'TIER_NOT_FOUND') {
       return res.status(400).json({ error: 'Tipo de boleta inválido' });
     }

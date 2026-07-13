@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "presaleAccess" BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE "Event" ADD COLUMN "serviceFeePercent" INTEGER NOT NULL DEFAULT 10;
+ALTER TABLE "Event" ADD COLUMN "salePhase" TEXT NOT NULL DEFAULT 'general';
+
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN "serviceFee" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "OrderItem" ADD COLUMN "finalUnitPrice" INTEGER NOT NULL DEFAULT 0;

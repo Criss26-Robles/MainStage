@@ -32,6 +32,17 @@ function normalizeTiers(raw: unknown): NormalizedTier[] {
     );
 }
 
+function normalizeSalePhase(value: unknown): string {
+  const phase = String(value ?? 'general').toLowerCase();
+  return phase === 'presale' ? 'presale' : 'general';
+}
+
+function normalizeServiceFeePercent(value: unknown): number {
+  const n = parseInt(String(value), 10);
+  if (!Number.isFinite(n)) return 10;
+  return Math.min(50, Math.max(0, n));
+}
+
 function normalizeFocus(value: unknown, fallback = 50): number {
   const n = parseInt(String(value), 10);
   if (!Number.isFinite(n)) return fallback;
@@ -39,6 +50,29 @@ function normalizeFocus(value: unknown, fallback = 50): number {
 }
 
 router.use(authMiddleware, adminMiddleware);
+
+router.patch('/users/:id/presale', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+  const presaleAccess =
+    req.body.presaleAccess !== undefined ? !!req.body.presaleAccess : !user.presaleAccess;
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { presaleAccess },
+    select: { id: true, name: true, email: true, role: true, presaleAccess: true, createdAt: true }
+  });
+  res.json(updated);
+});
+
+router.get('/users', async (_req, res) => {
+  const users = await prisma.user.findMany({
+    orderBy: { id: 'asc' },
+    select: { id: true, name: true, email: true, role: true, presaleAccess: true, createdAt: true }
+  });
+  res.json(users);
+});
 
 router.get('/stats', async (_req, res) => {
   const [orders, totalEvents] = await Promise.all([
@@ -118,6 +152,8 @@ router.post('/events', async (req, res) => {
       featured: !!req.body.featured,
       popular: !!req.body.popular,
       discount: parseInt(req.body.discount, 10) || 0,
+      serviceFeePercent: normalizeServiceFeePercent(req.body.serviceFeePercent),
+      salePhase: normalizeSalePhase(req.body.salePhase),
       tags: Array.isArray(req.body.tags) ? req.body.tags : [],
       tiers: { create: tiers }
     },
@@ -163,6 +199,12 @@ router.put('/events/:id', async (req, res) => {
         featured: req.body.featured !== undefined ? !!req.body.featured : existing.featured,
         popular: req.body.popular !== undefined ? !!req.body.popular : existing.popular,
         discount: req.body.discount !== undefined ? parseInt(req.body.discount, 10) : existing.discount,
+        serviceFeePercent:
+          req.body.serviceFeePercent !== undefined
+            ? normalizeServiceFeePercent(req.body.serviceFeePercent)
+            : existing.serviceFeePercent,
+        salePhase:
+          req.body.salePhase !== undefined ? normalizeSalePhase(req.body.salePhase) : existing.salePhase,
         tags: Array.isArray(req.body.tags) ? req.body.tags : existing.tags,
         ...(hasTiers ? { tiers: { create: tiers } } : {})
       },

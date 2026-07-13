@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEventSearchStream } from '../hooks/useEventSearchStream';
-import { formatShortDate, formatPrice } from '../services/api';
+import { formatShortDate, formatPrice, getFinalPrice } from '../services/api';
 import { imageUrl } from '../utils/imageUrl';
 import './LiveSearch.css';
 
@@ -84,7 +84,9 @@ export default function LiveSearch() {
                       </div>
                       <div className="live-search__result-side">
                         <span className="live-search__result-date">{formatShortDate(event.date)}</span>
-                        <span className="live-search__result-price">{formatPrice(event.price)}</span>
+                        <span className="live-search__result-price">
+                          {formatPrice(getFinalPrice(event.price, event.discount, event.serviceFeePercent ?? 10))}
+                        </span>
                       </div>
                     </Link>
                   </li>

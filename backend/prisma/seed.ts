@@ -20,6 +20,8 @@ interface SeedEvent {
   featured: boolean;
   popular: boolean;
   discount: number;
+  serviceFeePercent?: number;
+  salePhase?: string;
   tags: string[];
 }
 
@@ -92,6 +94,7 @@ const events: SeedEvent[] = [
     featured: true,
     popular: true,
     discount: 20,
+    serviceFeePercent: 12,
     tags: ['Música', 'Festival', 'En vivo']
   },
   {
@@ -111,6 +114,8 @@ const events: SeedEvent[] = [
     featured: true,
     popular: true,
     discount: 15,
+    serviceFeePercent: 10,
+    salePhase: 'presale',
     tags: ['Reggaetón', 'Concierto', 'Pop']
   },
   {
@@ -149,6 +154,8 @@ const events: SeedEvent[] = [
     featured: true,
     popular: true,
     discount: 10,
+    serviceFeePercent: 8,
+    salePhase: 'presale',
     tags: ['Carnaval', 'Festival', 'Pop']
   },
   {
@@ -413,6 +420,8 @@ async function main() {
     await prisma.event.create({
       data: {
         ...event,
+        serviceFeePercent: event.serviceFeePercent ?? 10,
+        salePhase: event.salePhase ?? 'general',
         price,
         availableTickets,
         tiers: { create: tiers }
@@ -425,16 +434,32 @@ async function main() {
   const passwordHash = await bcrypt.hash('admin123', 10);
   await prisma.user.upsert({
     where: { email: 'admin@mainstage.co' },
-    update: {},
+    update: { presaleAccess: true },
     create: {
       name: 'Administrador',
       email: 'admin@mainstage.co',
       password: passwordHash,
-      role: 'admin'
+      role: 'admin',
+      presaleAccess: true
     }
   });
 
-  console.log(`Seed completado: ${events.length} eventos, ${venues.length} escenarios y usuario admin.`);
+  const memberHash = await bcrypt.hash('member123', 10);
+  await prisma.user.upsert({
+    where: { email: 'member@mainstage.co' },
+    update: { presaleAccess: true },
+    create: {
+      name: 'Miembro Preventa',
+      email: 'member@mainstage.co',
+      password: memberHash,
+      role: 'user',
+      presaleAccess: true
+    }
+  });
+
+  console.log(
+    `Seed completado: ${events.length} eventos, ${venues.length} escenarios, admin y member@mainstage.co (preventa).`
+  );
 }
 
 main()

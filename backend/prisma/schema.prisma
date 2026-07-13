@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  orders    Order[]
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  password      String
+  role          String   @default("user")
+  presaleAccess Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  orders        Order[]
 }
 
 model Event {
@@ -35,9 +36,11 @@ model Event {
   availableTickets Int
   featured         Boolean      @default(false)
   popular          Boolean      @default(false)
-  discount         Int          @default(0)
-  tags             String[]
-  createdAt        DateTime     @default(now())
+  discount          Int          @default(0)
+  serviceFeePercent Int          @default(10)
+  salePhase         String       @default("general")
+  tags              String[]
+  createdAt         DateTime     @default(now())
   orders           Order[]
   tiers            TicketTier[]
 }
@@ -73,13 +76,15 @@ model Order {
 }
 
 model OrderItem {
-  id        Int         @id @default(autoincrement())
-  orderId   Int
-  tierId    Int?
-  tierName  String
-  unitPrice Int
-  quantity  Int
-  subtotal  Int
+  id             Int         @id @default(autoincrement())
+  orderId        Int
+  tierId         Int?
+  tierName       String
+  unitPrice      Int
+  serviceFee     Int         @default(0)
+  finalUnitPrice Int         @default(0)
+  quantity       Int
+  subtotal       Int
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   tier      TicketTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
 }

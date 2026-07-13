@@ -27,6 +27,8 @@ export interface EventItem {
   featured: boolean;
   popular: boolean;
   discount: number;
+  serviceFeePercent: number;
+  salePhase: string;
   tags: string[];
   createdAt?: string;
   tiers?: TicketTier[];
@@ -37,6 +39,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  presaleAccess: boolean;
   createdAt?: string;
 }
 
@@ -46,6 +49,8 @@ export interface OrderItem {
   tierId: number | null;
   tierName: string;
   unitPrice: number;
+  serviceFee: number;
+  finalUnitPrice: number;
   quantity: number;
   subtotal: number;
 }
@@ -134,5 +139,15 @@ export interface AdminEventPayload {
   featured?: boolean;
   popular?: boolean;
   discount?: number;
+  serviceFeePercent?: number;
+  salePhase?: string;
   tiers: TierInput[];
+}
+
+export interface PurchaseInfo {
+  purchasedQty: number;
+  maxAllowed: number;
+  remaining: number;
+  canPurchasePresale: boolean;
+  salePhase: string;
 }

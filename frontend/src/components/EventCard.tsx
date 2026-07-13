@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { formatPrice, formatShortDate, getDiscountedPrice } from '../services/api';
+import { formatPrice, formatShortDate, getDiscountedPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { imageUrl, imageObjectPosition } from '../utils/imageUrl';
 import './EventCard.css';
@@ -14,6 +14,8 @@ interface EventCardProps {
 export default function EventCard({ event, index = 0, variant = 'default' }: EventCardProps) {
   const hasDiscount = event.discount > 0 && event.price > 0;
   const discounted = getDiscountedPrice(event.price, event.discount);
+  const finalPrice = getFinalPrice(event.price, event.discount, event.serviceFeePercent ?? 10);
+  const feePercent = event.serviceFeePercent ?? 10;
 
   return (
     <motion.article
@@ -39,6 +41,7 @@ export default function EventCard({ event, index = 0, variant = 'default' }: Eve
             <span className="event-card__date-month">{formatShortDate(event.date).split(' ')[1]}</span>
           </div>
           {event.featured && <span className="event-card__featured">Destacado</span>}
+          {event.salePhase === 'presale' && <span className="event-card__featured">Preventa</span>}
           {hasDiscount && <span className="event-card__discount">-{event.discount}%</span>}
         </div>
 
@@ -50,7 +53,10 @@ export default function EventCard({ event, index = 0, variant = 'default' }: Eve
             <span className="event-card__venue">{event.city} · {event.venue}</span>
             <span className="event-card__price">
               {hasDiscount && <span className="event-card__price-old">{formatPrice(event.price)} </span>}
-              {formatPrice(discounted)}
+              {formatPrice(finalPrice)}
+              {event.price > 0 && feePercent > 0 && (
+                <span className="event-card__fee-note"> incl. comisión</span>
+              )}
             </span>
           </div>
         </div>

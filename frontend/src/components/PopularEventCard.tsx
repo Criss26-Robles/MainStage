@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { formatPrice, formatDate, getDiscountedPrice } from '../services/api';
+import { formatPrice, formatDate, getDiscountedPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { imageUrl, imageObjectPosition } from '../utils/imageUrl';
 import './PopularEventCard.css';
@@ -18,6 +18,7 @@ export default function PopularEventCard({
 }: PopularEventCardProps) {
   const discounted = getDiscountedPrice(event.price, event.discount);
   const hasDiscount = event.discount > 0 && event.price > 0;
+  const finalPrice = getFinalPrice(event.price, event.discount, event.serviceFeePercent ?? 10);
 
   return (
     <motion.article
@@ -70,7 +71,10 @@ export default function PopularEventCard({
             {hasDiscount && (
               <span className="popular-card__price-old">{formatPrice(event.price)}</span>
             )}
-            <span className="popular-card__price">{formatPrice(discounted)}</span>
+            <span className="popular-card__price">{formatPrice(finalPrice)}</span>
+            {event.price > 0 && (event.serviceFeePercent ?? 10) > 0 && (
+              <span className="popular-card__fee-note">incl. comisión</span>
+            )}
           </div>
         </div>
       </Link>
