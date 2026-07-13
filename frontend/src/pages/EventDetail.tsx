@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TicketForm from '../components/TicketForm';
+import PriceHistory from '../components/PriceHistory';
 import { fetchEvent, formatDate, formatPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { heroImageProps } from '../utils/imageUrl';
@@ -133,6 +134,8 @@ export default function EventDetail() {
             <h2>Acerca del evento</h2>
             <p>{event.description}</p>
           </div>
+
+          <PriceHistory eventId={event.id} />
         </motion.div>
 
         <motion.div

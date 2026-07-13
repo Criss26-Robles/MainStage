@@ -43,6 +43,7 @@ model Event {
   createdAt         DateTime     @default(now())
   orders           Order[]
   tiers            TicketTier[]
+  priceHistory     PriceHistory[]
 }
 
 model TicketTier {
@@ -90,6 +91,17 @@ model OrderItem {
   subtotal       Int
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   tier      TicketTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+}
+
+model PriceHistory {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  oldPrice  Int
+  newPrice  Int
+  reason    String   @default("")
+  changedBy Int?
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Venue {

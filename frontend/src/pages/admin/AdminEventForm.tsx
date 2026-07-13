@@ -50,6 +50,8 @@ export default function AdminEventForm() {
   const [tiers, setTiers] = useState<TierRow[]>([{ name: 'General', price: '', available: '', description: '' }]);
   const [imageFocusX, setImageFocusX] = useState(50);
   const [imageFocusY, setImageFocusY] = useState(50);
+  const [priceChangeReason, setPriceChangeReason] = useState('');
+  const [originalMinPrice, setOriginalMinPrice] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEdit);
@@ -88,6 +90,9 @@ export default function AdminEventForm() {
               description: t.description || ''
             }))
           );
+          setOriginalMinPrice(Math.min(...event.tiers.map(t => t.price)));
+        } else {
+          setOriginalMinPrice(event.price);
         }
       })
       .catch(console.error)
@@ -132,6 +137,12 @@ export default function AdminEventForm() {
       return;
     }
 
+    const newMinPrice = Math.min(...cleanedTiers.map(t => t.price));
+    if (isEdit && originalMinPrice !== null && newMinPrice !== originalMinPrice && !priceChangeReason.trim()) {
+      setError('Indica el motivo del cambio de precio');
+      return;
+    }
+
     setLoading(true);
 
     const payload: AdminEventPayload = {
@@ -152,7 +163,8 @@ export default function AdminEventForm() {
       discount: parseInt(form.discount, 10) || 0,
       serviceFeePercent: parseInt(form.serviceFeePercent, 10) || 10,
       salePhase: form.salePhase,
-      tiers: cleanedTiers
+      tiers: cleanedTiers,
+      ...(isEdit && priceChangeReason.trim() ? { priceChangeReason: priceChangeReason.trim() } : {})
     };
 
     try {
@@ -243,6 +255,17 @@ export default function AdminEventForm() {
             </select>
           </div>
         </div>
+
+        {isEdit && originalMinPrice !== null && (
+          <div className="admin-form__field">
+            <label>Motivo del cambio de precio</label>
+            <input
+              value={priceChangeReason}
+              onChange={e => setPriceChangeReason(e.target.value)}
+              placeholder="Obligatorio si modificas el precio base de las boletas"
+            />
+          </div>
+        )}
 
         <div className="admin-form__field">
           <label>URL de imagen</label>

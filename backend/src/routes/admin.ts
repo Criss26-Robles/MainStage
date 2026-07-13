@@ -175,11 +175,12 @@ router.put('/events/:id', async (req, res) => {
     ? tiers.reduce((sum, t) => sum + t.available, 0)
     : existing.availableTickets;
 
-  const updated = await prisma.$transaction(async (tx) => {
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
     if (hasTiers) {
       await tx.ticketTier.deleteMany({ where: { eventId: id } });
     }
-    return tx.event.update({
+    const event = await tx.event.update({
       where: { id },
       data: {
         title: req.body.title ?? existing.title,
@@ -210,9 +211,35 @@ router.put('/events/:id', async (req, res) => {
       },
       include: { tiers: { orderBy: { sortOrder: 'asc' } } }
     });
-  });
 
-  res.json(updated);
+    if (price !== existing.price) {
+      const reason = String(req.body.priceChangeReason ?? '').trim();
+      if (!reason) {
+        throw new Error('PRICE_REASON_REQUIRED');
+      }
+      await tx.priceHistory.create({
+        data: {
+          eventId: id,
+          oldPrice: existing.price,
+          newPrice: price,
+          reason,
+          changedBy: req.user!.id
+        }
+      });
+    }
+
+    return event;
+    });
+
+    res.json(updated);
+  } catch (err) {
+    if (err instanceof Error && err.message === 'PRICE_REASON_REQUIRED') {
+      return res.status(400).json({
+        error: 'Debes indicar el motivo del cambio de precio'
+      });
+    }
+    return res.status(500).json({ error: 'No se pudo actualizar el evento' });
+  }
 });
 
 router.delete('/events/:id', async (req, res) => {

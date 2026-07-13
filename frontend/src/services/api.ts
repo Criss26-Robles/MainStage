@@ -10,7 +10,8 @@ import type {
   User,
   Venue,
   TicketVerification,
-  OrderQrResponse
+  OrderQrResponse,
+  PriceHistoryEntry
 } from '../types';
 
 const API_BASE = '/api';
@@ -117,6 +118,12 @@ export async function fetchEvents(params: EventFilters = {}): Promise<EventItem[
 export async function fetchEvent(id: string | number): Promise<EventItem> {
   const res = await fetch(`${API_BASE}/events/${id}`);
   if (!res.ok) throw new Error('Evento no encontrado');
+  return res.json();
+}
+
+export async function fetchPriceHistory(eventId: string | number): Promise<PriceHistoryEntry[]> {
+  const res = await fetch(`${API_BASE}/events/${eventId}/price-history`);
+  if (!res.ok) throw new Error('No se pudo cargar el historial de precios');
   return res.json();
 }
 

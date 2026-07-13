@@ -409,7 +409,7 @@ const venues: Prisma.VenueCreateManyInput[] = [
 
 async function main() {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE TABLE "OrderItem", "Order", "TicketTier", "Event", "Venue" RESTART IDENTITY CASCADE'
+    'TRUNCATE TABLE "OrderItem", "Order", "TicketTier", "PriceHistory", "Event", "Venue" RESTART IDENTITY CASCADE'
   );
 
   for (const event of events) {
@@ -417,7 +417,7 @@ async function main() {
     const price = Math.min(...tiers.map((t) => t.price));
     const availableTickets = tiers.reduce((sum, t) => sum + t.available, 0);
 
-    await prisma.event.create({
+    const created = await prisma.event.create({
       data: {
         ...event,
         serviceFeePercent: event.serviceFeePercent ?? 10,
@@ -427,6 +427,17 @@ async function main() {
         tiers: { create: tiers }
       }
     });
+
+    if (event.title === 'Festival Estéreo Picnic') {
+      await prisma.priceHistory.create({
+        data: {
+          eventId: created.id,
+          oldPrice: Math.round(price * 1.15),
+          newPrice: price,
+          reason: 'Ajuste por demanda inicial — precio reducido para venta temprana'
+        }
+      });
+    }
   }
 
   await prisma.venue.createMany({ data: venues });

@@ -68,6 +68,21 @@ router.get('/cities', async (_req, res) => {
   res.json(Object.values(cityMap).sort((a, b) => b.count - a.count));
 });
 
+router.get('/:id/price-history', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) return res.status(404).json({ error: 'Evento no encontrado' });
+
+  const event = await prisma.event.findUnique({ where: { id } });
+  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+  const history = await prisma.priceHistory.findMany({
+    where: { eventId: id },
+    orderBy: { createdAt: 'desc' },
+    take: 20
+  });
+  res.json(history);
+});
+
 router.get('/:id/purchase-info', authMiddleware, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (Number.isNaN(id)) return res.status(404).json({ error: 'Evento no encontrado' });

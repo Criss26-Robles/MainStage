@@ -144,7 +144,18 @@ export interface AdminEventPayload {
   discount?: number;
   serviceFeePercent?: number;
   salePhase?: string;
+  priceChangeReason?: string;
   tiers: TierInput[];
+}
+
+export interface PriceHistoryEntry {
+  id: number;
+  eventId: number;
+  oldPrice: number;
+  newPrice: number;
+  reason: string;
+  changedBy: number | null;
+  createdAt: string;
 }
 
 export interface PurchaseInfo {
