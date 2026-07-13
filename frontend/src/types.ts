@@ -67,6 +67,9 @@ export interface Order {
   buyerEmail: string;
   totalPrice: number;
   confirmationCode: string;
+  qrCode: string;
+  qrUsed: boolean;
+  qrUsedAt?: string | null;
   createdAt: string;
   items?: OrderItem[];
 }
@@ -150,4 +153,26 @@ export interface PurchaseInfo {
   remaining: number;
   canPurchasePresale: boolean;
   salePhase: string;
+}
+
+export interface TicketVerification {
+  valid: boolean;
+  used: boolean;
+  usedAt?: string | null;
+  order: {
+    id: number;
+    eventTitle: string;
+    eventCity?: string;
+    eventDate?: string;
+    quantity?: number;
+    buyerName: string;
+    confirmationCode?: string;
+  };
+}
+
+export interface OrderQrResponse {
+  qrCode: string;
+  qrImage: string;
+  qrUsed: boolean;
+  qrUsedAt?: string | null;
 }

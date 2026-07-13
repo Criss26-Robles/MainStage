@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { fetchMyOrders, formatPrice, formatDate } from '../services/api';
+import OrderQr from '../components/OrderQr';
 import type { Order } from '../types';
 import './Profile.css';
 
@@ -97,6 +98,7 @@ export default function Profile() {
                   <span className="profile-order__code">{order.confirmationCode}</span>
                   <span className="profile-order__qty">{order.quantity} boleto{order.quantity > 1 ? 's' : ''}</span>
                   <span className="profile-order__price">{formatPrice(order.totalPrice)}</span>
+                  <OrderQr orderId={order.id} compact />
                 </div>
               </motion.div>
             ))}

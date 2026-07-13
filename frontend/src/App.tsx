@@ -13,6 +13,7 @@ import AdminEvents from './pages/admin/AdminEvents';
 import AdminEventForm from './pages/admin/AdminEventForm';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminTicketVerify from './pages/admin/AdminTicketVerify';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="eventos/:id/editar" element={<AdminEventForm />} />
         <Route path="ventas" element={<AdminOrders />} />
         <Route path="usuarios" element={<AdminUsers />} />
+        <Route path="verificar-boleto" element={<AdminTicketVerify />} />
       </Route>
 
       <Route element={<PublicLayout />}>

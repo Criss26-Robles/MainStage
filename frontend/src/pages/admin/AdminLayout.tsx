@@ -35,6 +35,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/usuarios" className={({ isActive }) => `admin-sidebar__link ${isActive ? 'admin-sidebar__link--active' : ''}`}>
             Usuarios
           </NavLink>
+          <NavLink to="/admin/verificar-boleto" className={({ isActive }) => `admin-sidebar__link ${isActive ? 'admin-sidebar__link--active' : ''}`}>
+            Verificar QR
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar__footer">

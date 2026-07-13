@@ -12,6 +12,7 @@ import {
   fetchPurchaseInfo
 } from '../services/api';
 import type { EventItem, Order, PurchaseInfo, TicketTier } from '../types';
+import OrderQr from './OrderQr';
 import './TicketForm.css';
 
 const MAX_PER_ORDER = 10;
@@ -143,6 +144,7 @@ export default function TicketForm({ event }: TicketFormProps) {
           Enviamos la confirmación a {order.buyerEmail}
         </p>
         <p className="ticket-form__success-total">Total: {formatPrice(order.totalPrice)}</p>
+        <OrderQr orderId={order.id} />
         <Link to="/perfil" className="btn btn-outline ticket-form__profile-link">
           Ver mis compras
         </Link>

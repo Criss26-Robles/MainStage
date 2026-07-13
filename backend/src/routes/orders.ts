@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { prisma } from '../lib/prisma';
 import { authMiddleware } from '../middleware/auth';
 import {
@@ -122,6 +123,7 @@ router.post('/', authMiddleware, async (req, res) => {
           buyerEmail: req.user!.email,
           totalPrice,
           confirmationCode: `MS-${Date.now().toString(36).toUpperCase()}`,
+          qrCode: randomUUID(),
           items: { create: orderItemsData }
         },
         include: { items: { orderBy: { id: 'asc' } } }

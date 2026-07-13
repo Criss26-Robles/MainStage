@@ -8,7 +8,9 @@ import type {
   Order,
   PurchaseInfo,
   User,
-  Venue
+  Venue,
+  TicketVerification,
+  OrderQrResponse
 } from '../types';
 
 const API_BASE = '/api';
@@ -227,6 +229,26 @@ export async function toggleUserPresaleAccess(
     body: JSON.stringify(presaleAccess !== undefined ? { presaleAccess } : {})
   });
   return handleResponse<User>(res);
+}
+
+export async function fetchOrderQr(orderId: number): Promise<OrderQrResponse> {
+  const res = await fetch(`${API_BASE}/tickets/my/${orderId}/qr`, {
+    headers: authHeaders()
+  });
+  return handleResponse<OrderQrResponse>(res);
+}
+
+export async function verifyTicket(code: string): Promise<TicketVerification> {
+  const res = await fetch(`${API_BASE}/tickets/verify/${encodeURIComponent(code)}`);
+  return handleResponse<TicketVerification>(res);
+}
+
+export async function markTicketUsed(code: string): Promise<TicketVerification & { message: string }> {
+  const res = await fetch(`${API_BASE}/tickets/verify/${encodeURIComponent(code)}/use`, {
+    method: 'POST',
+    headers: authHeaders()
+  });
+  return handleResponse<TicketVerification & { message: string }>(res);
 }
 
 export interface AdminStatsTopEvent {
