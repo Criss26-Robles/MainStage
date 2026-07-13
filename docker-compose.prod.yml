@@ -1,0 +1,19 @@
+# Producción: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+services:
+  backend:
+    build:
+      context: ./backend
+      target: production
+    environment:
+      NODE_ENV: production
+      SEED_ON_START: "false"
+    volumes: []
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - "8080:80"
+    environment: {}
+    volumes: []
