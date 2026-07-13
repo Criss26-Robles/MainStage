@@ -70,6 +70,7 @@ export interface Order {
   qrCode: string;
   qrUsed: boolean;
   qrUsedAt?: string | null;
+  status: string;
   createdAt: string;
   items?: OrderItem[];
 }
@@ -186,4 +187,21 @@ export interface OrderQrResponse {
   qrImage: string;
   qrUsed: boolean;
   qrUsedAt?: string | null;
+}
+
+export interface ResaleListing {
+  id: number;
+  askPrice: number;
+  status: string;
+  createdAt: string;
+  soldAt?: string | null;
+  order: {
+    id: number;
+    eventTitle: string;
+    eventCity: string;
+    eventDate: string;
+    quantity: number;
+    totalPrice: number;
+  };
+  seller: { id: number; name: string };
 }

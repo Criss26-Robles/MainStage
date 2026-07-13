@@ -16,6 +16,8 @@ model User {
   presaleAccess Boolean  @default(false)
   createdAt     DateTime @default(now())
   orders        Order[]
+  resalesSold   Resale[] @relation("ResaleSeller")
+  resalesBought Resale[] @relation("ResaleBuyer")
 }
 
 model Event {
@@ -73,10 +75,13 @@ model Order {
   qrCode           String      @unique
   qrUsed           Boolean     @default(false)
   qrUsedAt         DateTime?
+  status           String      @default("active")
+  resoldToUserId   Int?
   createdAt        DateTime    @default(now())
   user             User        @relation(fields: [userId], references: [id])
   event            Event       @relation(fields: [eventId], references: [id])
   items            OrderItem[]
+  resale           Resale?
 }
 
 model OrderItem {
@@ -91,6 +96,20 @@ model OrderItem {
   subtotal       Int
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   tier      TicketTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+}
+
+model Resale {
+  id        Int       @id @default(autoincrement())
+  orderId   Int       @unique
+  sellerId  Int
+  buyerId   Int?
+  askPrice  Int
+  status    String    @default("listed")
+  createdAt DateTime  @default(now())
+  soldAt    DateTime?
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  seller    User      @relation("ResaleSeller", fields: [sellerId], references: [id])
+  buyer     User?     @relation("ResaleBuyer", fields: [buyerId], references: [id])
 }
 
 model PriceHistory {

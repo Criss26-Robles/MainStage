@@ -7,6 +7,7 @@ import Events from './pages/Events';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import Resale from './pages/Resale';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminEvents from './pages/admin/AdminEvents';
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
         <Route path="/perfil" element={<Profile />} />
+        <Route path="/reventa" element={<Resale />} />
       </Route>
     </Routes>
   );

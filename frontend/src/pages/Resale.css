@@ -1,0 +1,57 @@
+.resale-page {
+  padding: 48px 0 80px;
+}
+
+.resale-page__header {
+  margin-bottom: 32px;
+}
+
+.resale-page__header h1 {
+  margin-bottom: 8px;
+}
+
+.resale-page__header p {
+  color: #999;
+}
+
+.resale-page__error {
+  color: #e66;
+  margin-bottom: 16px;
+}
+
+.resale-page__empty {
+  text-align: center;
+  padding: 48px 0;
+}
+
+.resale-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.resale-card {
+  padding: 20px;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+}
+
+.resale-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.resale-card__meta,
+.resale-card__qty,
+.resale-card__seller {
+  font-size: 0.85rem;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.resale-card__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 12px 0 16px;
+}

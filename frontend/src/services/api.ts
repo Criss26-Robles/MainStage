@@ -11,7 +11,8 @@ import type {
   Venue,
   TicketVerification,
   OrderQrResponse,
-  PriceHistoryEntry
+  PriceHistoryEntry,
+  ResaleListing
 } from '../types';
 
 const API_BASE = '/api';
@@ -256,6 +257,42 @@ export async function markTicketUsed(code: string): Promise<TicketVerification &
     headers: authHeaders()
   });
   return handleResponse<TicketVerification & { message: string }>(res);
+}
+
+export async function fetchResaleListings(): Promise<ResaleListing[]> {
+  const res = await fetch(`${API_BASE}/resale`);
+  if (!res.ok) throw new Error('Error al cargar reventas');
+  return res.json();
+}
+
+export async function fetchMyResaleListings(): Promise<ResaleListing[]> {
+  const res = await fetch(`${API_BASE}/resale/my`, { headers: authHeaders() });
+  return handleResponse<ResaleListing[]>(res);
+}
+
+export async function createResaleListing(orderId: number, askPrice: number): Promise<ResaleListing> {
+  const res = await fetch(`${API_BASE}/resale`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ orderId, askPrice })
+  });
+  return handleResponse<ResaleListing>(res);
+}
+
+export async function buyResaleListing(id: number): Promise<ResaleListing> {
+  const res = await fetch(`${API_BASE}/resale/${id}/buy`, {
+    method: 'POST',
+    headers: authHeaders()
+  });
+  return handleResponse<ResaleListing>(res);
+}
+
+export async function cancelResaleListing(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/resale/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
+  return handleResponse<{ message: string }>(res);
 }
 
 export interface AdminStatsTopEvent {

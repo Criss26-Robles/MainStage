@@ -71,7 +71,8 @@ export default function Navbar() {
 
   const links = [
     { to: '/', label: 'Inicio' },
-    { to: '/eventos', label: 'Eventos' }
+    { to: '/eventos', label: 'Eventos' },
+    { to: '/reventa', label: 'Reventa' }
   ];
 
   const activeCategory = new URLSearchParams(location.search).get('category');

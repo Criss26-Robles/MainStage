@@ -409,7 +409,7 @@ const venues: Prisma.VenueCreateManyInput[] = [
 
 async function main() {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE TABLE "OrderItem", "Order", "TicketTier", "PriceHistory", "Event", "Venue" RESTART IDENTITY CASCADE'
+    'TRUNCATE TABLE "Resale", "OrderItem", "Order", "TicketTier", "PriceHistory", "Event", "Venue" RESTART IDENTITY CASCADE'
   );
 
   for (const event of events) {

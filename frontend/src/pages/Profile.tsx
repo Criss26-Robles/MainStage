@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { fetchMyOrders, formatPrice, formatDate } from '../services/api';
+import {
+  fetchMyOrders,
+  formatPrice,
+  formatDate,
+  createResaleListing
+} from '../services/api';
 import OrderQr from '../components/OrderQr';
 import type { Order } from '../types';
 import './Profile.css';
@@ -11,6 +16,7 @@ export default function Profile() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resaleError, setResaleError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +33,30 @@ export default function Profile() {
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated]);
+
+  const handleResell = async (order: Order) => {
+    const input = window.prompt(
+      `¿A qué precio quieres publicar "${order.eventTitle}"? (COP)`,
+      String(order.totalPrice)
+    );
+    if (!input) return;
+    const askPrice = parseInt(input.replace(/\D/g, ''), 10);
+    if (!askPrice || askPrice <= 0) {
+      setResaleError('Precio inválido');
+      return;
+    }
+    setResaleError('');
+    try {
+      await createResaleListing(order.id, askPrice);
+      const updated = await fetchMyOrders();
+      setOrders(updated);
+    } catch (err) {
+      setResaleError(err instanceof Error ? err.message : 'No se pudo publicar en reventa');
+    }
+  };
+
+  const canResell = (order: Order) =>
+    order.status === 'active' && !order.qrUsed;
 
   if (authLoading || !user) {
     return (
@@ -66,6 +96,8 @@ export default function Profile() {
       <div className="container profile-page__content">
         <h2 className="profile-page__section-title">Mis compras</h2>
 
+        {resaleError && <p className="profile-page__resale-error">{resaleError}</p>}
+
         {loading ? (
           <div className="profile-page__skeleton" />
         ) : orders.length === 0 ? (
@@ -98,6 +130,18 @@ export default function Profile() {
                   <span className="profile-order__code">{order.confirmationCode}</span>
                   <span className="profile-order__qty">{order.quantity} boleto{order.quantity > 1 ? 's' : ''}</span>
                   <span className="profile-order__price">{formatPrice(order.totalPrice)}</span>
+                  {order.status === 'listed' && (
+                    <span className="profile-order__listed">En reventa</span>
+                  )}
+                  {canResell(order) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline profile-order__resell"
+                      onClick={() => handleResell(order)}
+                    >
+                      Revender
+                    </button>
+                  )}
                   <OrderQr orderId={order.id} compact />
                 </div>
               </motion.div>
