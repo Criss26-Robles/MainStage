@@ -9,7 +9,8 @@ import {
   getServiceFee,
   getFinalPrice,
   createOrder,
-  fetchPurchaseInfo
+  fetchPurchaseInfo,
+  getEventSourceLabel
 } from '../services/api';
 import type { EventItem, Order, PurchaseInfo, TicketTier } from '../types';
 import OrderQr from './OrderQr';
@@ -47,14 +48,14 @@ export default function TicketForm({ event }: TicketFormProps) {
   const [purchaseInfo, setPurchaseInfo] = useState<PurchaseInfo | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !event.isSellable) {
       setPurchaseInfo(null);
       return;
     }
     fetchPurchaseInfo(event.id)
       .then(setPurchaseInfo)
       .catch(() => setPurchaseInfo(null));
-  }, [event.id, isAuthenticated]);
+  }, [event.id, isAuthenticated, event.isSellable]);
 
   const unitPriceOf = (tier: TicketTier) => getDiscountedPrice(tier.price, event.discount);
   const serviceFeeOf = (tier: TicketTier) => getServiceFee(unitPriceOf(tier), feePercent);
@@ -141,7 +142,7 @@ export default function TicketForm({ event }: TicketFormProps) {
           para <strong>{order.eventTitle}</strong>
         </p>
         <p className="ticket-form__success-email">
-          Enviamos la confirmación a {order.buyerEmail}
+          Tu boleto quedó guardado en tu perfil de MainStage.
         </p>
         <p className="ticket-form__success-total">Total: {formatPrice(order.totalPrice)}</p>
         <OrderQr orderId={order.id} />
@@ -149,6 +150,37 @@ export default function TicketForm({ event }: TicketFormProps) {
           Ver mis compras
         </Link>
       </motion.div>
+    );
+  }
+
+  if (!event.isSellable) {
+    const sourceLabel = getEventSourceLabel(event.source);
+    return (
+      <div className="ticket-form ticket-form--external">
+        <h3 className="ticket-form__title">Boletas en plataforma oficial</h3>
+        <p className="ticket-form__external-msg">
+          Este evento se vende a través de <strong>{sourceLabel}</strong>. MainStage te muestra
+          la información con precio transparente; la compra se completa en el sitio oficial.
+        </p>
+        <p className="ticket-form__price">
+          <span>Desde</span> {formatPrice(minPrice)}
+          {event.price > 0 && feePercent > 0 && (
+            <span className="ticket-form__fee-note"> (referencia incl. comisión {feePercent}%)</span>
+          )}
+        </p>
+        {event.externalUrl ? (
+          <a
+            href={event.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary ticket-form__submit"
+          >
+            Ver boletas en {sourceLabel}
+          </a>
+        ) : (
+          <p className="ticket-form__hint">Enlace oficial próximamente</p>
+        )}
+      </div>
     );
   }
 

@@ -45,6 +45,12 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Evento no encontrado' });
     }
 
+    if (!event.isSellable) {
+      return res.status(403).json({
+        error: 'Este evento solo está disponible en la plataforma oficial enlazada'
+      });
+    }
+
     if (event.salePhase === 'presale' && !req.user!.presaleAccess) {
       return res.status(403).json({
         error: 'Este evento está en preventa. Necesitas acceso de membresía para comprar.'

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { formatPrice, formatShortDate, getDiscountedPrice, getFinalPrice } from '../services/api';
+import { formatPrice, formatShortDate, getDiscountedPrice, getFinalPrice, getEventSourceLabel } from '../services/api';
 import type { EventItem } from '../types';
 import { imageUrl, imageObjectPosition } from '../utils/imageUrl';
 import './EventCard.css';
@@ -41,7 +41,12 @@ export default function EventCard({ event, index = 0, variant = 'default' }: Eve
             <span className="event-card__date-month">{formatShortDate(event.date).split(' ')[1]}</span>
           </div>
           {event.featured && <span className="event-card__featured">Destacado</span>}
-          {event.salePhase === 'presale' && <span className="event-card__featured">Preventa</span>}
+          {!event.isSellable && (
+            <span className="event-card__source">{getEventSourceLabel(event.source)}</span>
+          )}
+          {event.isSellable && event.salePhase === 'presale' && (
+            <span className="event-card__featured">Preventa</span>
+          )}
           {hasDiscount && <span className="event-card__discount">-{event.discount}%</span>}
         </div>
 

@@ -22,6 +22,9 @@ interface EventFormState {
   discount: string;
   serviceFeePercent: string;
   salePhase: string;
+  source: string;
+  externalUrl: string;
+  isSellable: boolean;
 }
 
 interface TierRow {
@@ -37,7 +40,8 @@ const EMPTY: EventFormState = {
   title: '', artist: '', category: 'Concierto', date: '', time: '',
   venue: '', city: '', department: '', image: '', description: '',
   featured: false, popular: false, discount: '0',
-  serviceFeePercent: '10', salePhase: 'general'
+  serviceFeePercent: '10', salePhase: 'general',
+  source: 'mainstage', externalUrl: '', isSellable: true
 };
 
 const EMPTY_TIER: TierRow = { name: '', price: '', available: '', description: '' };
@@ -77,7 +81,10 @@ export default function AdminEventForm() {
           popular: event.popular,
           discount: String(event.discount || 0),
           serviceFeePercent: String(event.serviceFeePercent ?? 10),
-          salePhase: event.salePhase ?? 'general'
+          salePhase: event.salePhase ?? 'general',
+          source: event.source ?? 'mainstage',
+          externalUrl: event.externalUrl ?? '',
+          isSellable: event.isSellable ?? true
         });
         setImageFocusX(event.imageFocusX ?? 50);
         setImageFocusY(event.imageFocusY ?? 50);
@@ -163,6 +170,9 @@ export default function AdminEventForm() {
       discount: parseInt(form.discount, 10) || 0,
       serviceFeePercent: parseInt(form.serviceFeePercent, 10) || 10,
       salePhase: form.salePhase,
+      source: form.source,
+      externalUrl: form.externalUrl.trim(),
+      isSellable: form.isSellable,
       tiers: cleanedTiers,
       ...(isEdit && priceChangeReason.trim() ? { priceChangeReason: priceChangeReason.trim() } : {})
     };
@@ -266,6 +276,39 @@ export default function AdminEventForm() {
             />
           </div>
         )}
+
+        <div className="admin-form__row">
+          <div className="admin-form__field">
+            <label>Fuente del evento</label>
+            <select value={form.source} onChange={e => handleChange('source', e.target.value)}>
+              <option value="mainstage">MainStage (venta directa)</option>
+              <option value="tuboleta">TuBoleta (referencia)</option>
+              <option value="ticketmaster">Ticketmaster (referencia)</option>
+              <option value="bandsintown">Bandsintown (referencia)</option>
+              <option value="manual">Manual / otro</option>
+            </select>
+          </div>
+          <div className="admin-form__field">
+            <label>URL oficial de boletas</label>
+            <input
+              value={form.externalUrl}
+              onChange={e => handleChange('externalUrl', e.target.value)}
+              placeholder="https://..."
+              disabled={form.isSellable}
+            />
+          </div>
+        </div>
+
+        <div className="admin-form__checks">
+          <label className="admin-form__check">
+            <input
+              type="checkbox"
+              checked={form.isSellable}
+              onChange={e => handleChange('isSellable', e.target.checked)}
+            />
+            Venta directa en MainStage
+          </label>
+        </div>
 
         <div className="admin-form__field">
           <label>URL de imagen</label>

@@ -43,6 +43,12 @@ function normalizeServiceFeePercent(value: unknown): number {
   return Math.min(50, Math.max(0, n));
 }
 
+function normalizeSource(value: unknown): string {
+  const source = String(value ?? 'mainstage').toLowerCase();
+  const allowed = ['mainstage', 'tuboleta', 'ticketmaster', 'bandsintown', 'manual'];
+  return allowed.includes(source) ? source : 'mainstage';
+}
+
 function normalizeFocus(value: unknown, fallback = 50): number {
   const n = parseInt(String(value), 10);
   if (!Number.isFinite(n)) return fallback;
@@ -154,6 +160,9 @@ router.post('/events', async (req, res) => {
       discount: parseInt(req.body.discount, 10) || 0,
       serviceFeePercent: normalizeServiceFeePercent(req.body.serviceFeePercent),
       salePhase: normalizeSalePhase(req.body.salePhase),
+      source: normalizeSource(req.body.source),
+      externalUrl: String(req.body.externalUrl ?? '').trim(),
+      isSellable: req.body.isSellable !== undefined ? !!req.body.isSellable : true,
       tags: Array.isArray(req.body.tags) ? req.body.tags : [],
       tiers: { create: tiers }
     },
@@ -206,6 +215,10 @@ router.put('/events/:id', async (req, res) => {
             : existing.serviceFeePercent,
         salePhase:
           req.body.salePhase !== undefined ? normalizeSalePhase(req.body.salePhase) : existing.salePhase,
+        source: req.body.source !== undefined ? normalizeSource(req.body.source) : existing.source,
+        externalUrl:
+          req.body.externalUrl !== undefined ? String(req.body.externalUrl).trim() : existing.externalUrl,
+        isSellable: req.body.isSellable !== undefined ? !!req.body.isSellable : existing.isSellable,
         tags: Array.isArray(req.body.tags) ? req.body.tags : existing.tags,
         ...(hasTiers ? { tiers: { create: tiers } } : {})
       },

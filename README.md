@@ -10,72 +10,106 @@ Plataforma web de venta de boletos para conciertos y eventos en **Colombia**.
 - **Frontend:** React + Vite + TypeScript + Framer Motion
 - **Estado:** Redux Toolkit + React Redux
 - **Reactividad:** RxJS (búsqueda instantánea)
+- **Contenedores:** Docker Compose (desarrollo y producción)
+
+## Modelo dual de eventos
+
+MainStage combina dos modos según el origen del evento:
+
+| Modo | `isSellable` | Comportamiento |
+|------|--------------|----------------|
+| **Venta directa** | `true` | Compra interna con QR, preventa, límite de boletas y reventa validada |
+| **Descubrimiento** | `false` | Muestra precio de referencia y redirige al sitio oficial (`externalUrl`) |
+
+Fuentes soportadas: `mainstage`, `tuboleta`, `ticketmaster`, `bandsintown`, `manual`.
+
+## Features diferenciales implementadas
+
+1. **Precio transparente** — desglose de comisión de servicio (`serviceFeePercent`) antes de comprar
+2. **Límite de compra** — máximo 4 boletas por usuario y evento
+3. **Fases de venta** — preventa exclusiva para usuarios con `presaleAccess`
+4. **Boletos con QR** — código único por orden, verificación y uso en puerta (admin)
+5. **Historial de precios** — registro automático al editar el precio base de un evento
+6. **Reventa validada** — solo boletos comprados en MainStage pueden revenderse
+7. **Modo dual** — eventos externos como referencia vs. inventario propio vendible
 
 ## Estructura
 
 ```
 MainStage/
-├── backend/              # API Express en TypeScript
+├── docker-compose.yml        # Desarrollo (hot reload)
+├── docker-compose.prod.yml   # Producción
+├── backend/
 │   ├── prisma/
-│   │   ├── schema.prisma # Modelos (User, Event, Order, Venue)
-│   │   ├── migrations/   # Migraciones versionadas
-│   │   └── seed.ts       # Datos iniciales (eventos, venues, admin)
-│   ├── src/
-│   │   ├── lib/          # Cliente Prisma compartido
-│   │   ├── middleware/   # Autenticación JWT y rol admin
-│   │   ├── routes/       # events, orders, auth, venues, admin
-│   │   ├── types/        # Tipos compartidos
-│   │   └── server.ts     # Bootstrap de la API
-│   ├── .env              # DATABASE_URL, JWT_SECRET, PORT (no se versiona)
-│   └── tsconfig.json
-└── frontend/             # App React + TypeScript (Vite)
-    ├── tsconfig.json
+│   │   ├── schema.prisma     # User, Event, Order, TicketTier, PriceHistory, Resale
+│   │   ├── migrations/
+│   │   └── seed.ts
+│   └── src/
+│       ├── lib/pricing.ts    # Cálculo de precios y comisiones
+│       ├── middleware/       # JWT + rol admin
+│       └── routes/           # events, orders, auth, tickets, resale, admin
+└── frontend/
     └── src/
-        ├── components/   # Componentes .tsx (props tipadas)
-        ├── pages/        # Vistas y panel admin
-        ├── hooks/        # useAuth, useEventSearchStream (RxJS)
-        ├── store/        # Redux Toolkit (slices + hooks tipados)
-        ├── services/     # Cliente de API tipado
-        └── types.ts      # Interfaces de dominio (Event, Order, User, Venue)
+        ├── components/       # EventCard, TicketForm, OrderQr, PriceHistory...
+        ├── pages/            # Home, EventDetail, Profile, Resale, Admin
+        └── services/api.ts   # Cliente HTTP tipado
 ```
 
-## Inicio rápido
+## Inicio rápido con Docker (recomendado)
+
+### Requisitos
+
+- Docker Desktop 4+
+
+### Levantar todo el stack
+
+```bash
+docker compose up --build
+```
+
+| Servicio | URL |
+|----------|-----|
+| Frontend | http://localhost:5173 |
+| API | http://localhost:3001 |
+| PostgreSQL | localhost:5432 (`postgres` / `postgres`, BD `mainstage`) |
+
+El backend aplica migraciones y ejecuta el seed automáticamente al iniciar (`SEED_ON_START=true`).
+
+Para producción:
+
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+## Inicio rápido local (sin Docker)
 
 ### Requisitos
 
 - Node.js 18+
-- PostgreSQL 14+ corriendo localmente
+- PostgreSQL 14+
 
 ### Backend
 
 ```bash
 cd backend
 npm install
-
-# 1. Configura las variables de entorno
 cp .env.example .env
-# Edita .env y coloca tu contraseña de PostgreSQL en DATABASE_URL
+# Edita DATABASE_URL en .env
 
-# 2. Crea la base de datos, aplica las tablas y carga los datos iniciales
-npm run prisma:migrate      # crea la BD "mainstage" y las tablas
-npm run db:seed             # 14 eventos, 6 escenarios y usuario admin
-
-# 3. Levanta la API
+npm run prisma:migrate
+npm run db:seed
 npm run dev
 ```
 
 La API corre en `http://localhost:3001`
 
-**Scripts disponibles:**
-
 | Script | Descripción |
 |--------|-------------|
-| `npm run dev` | Levanta la API en modo desarrollo (ts-node) |
-| `npm run build` | Compila TypeScript a `dist/` |
-| `npm start` | Ejecuta la versión compilada |
-| `npm run prisma:migrate` | Crea/actualiza la base de datos con migraciones |
-| `npm run db:seed` | Carga los datos iniciales |
-| `npm run db:reset` | Reinicia la BD y vuelve a sembrar (borra todo) |
+| `npm run dev` | API en modo desarrollo |
+| `npm run build` | Compila TypeScript |
+| `npm run prisma:migrate` | Aplica migraciones |
+| `npm run db:seed` | Carga datos demo |
+| `npm run db:reset` | Reinicia BD y vuelve a sembrar |
 
 ### Frontend
 
@@ -85,36 +119,64 @@ npm install
 npm run dev
 ```
 
-La app corre en `http://localhost:5173`
+La app corre en `http://localhost:5173` (proxy `/api` → `localhost:3001`).
+
+## Usuarios demo
+
+| Email | Contraseña | Rol | Notas |
+|-------|------------|-----|-------|
+| `admin@mainstage.co` | `admin123` | Admin | Panel `/admin`, verificación QR |
+| `member@mainstage.co` | `member123` | Usuario | Acceso a preventa (`presaleAccess`) |
 
 ## API Endpoints
 
+### Públicos
+
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| GET | `/api/events` | Lista eventos (filtros: `category`, `city`, `artist`, `date`, `month`, `dateFrom`, `dateTo`, `featured`, `search`) |
-| GET | `/api/events/:id` | Detalle de un evento |
-| GET | `/api/events/categories` | Categorías disponibles |
-| GET | `/api/events/cities` | Ciudades con eventos activos |
-| POST | `/api/auth/register` | Registrar usuario |
-| POST | `/api/auth/login` | Iniciar sesión |
-| GET | `/api/auth/me` | Perfil del usuario autenticado |
-| POST | `/api/orders` | Crear orden de compra (requiere auth) |
-| GET | `/api/admin/stats` | Estadísticas de ventas (admin) |
-| GET | `/api/admin/orders` | Todas las ventas (admin) |
-| GET | `/api/admin/events` | Listar eventos (admin) |
-| POST | `/api/admin/events` | Crear evento (admin) |
-| PUT | `/api/admin/events/:id` | Editar evento (admin) |
-| DELETE | `/api/admin/events/:id` | Eliminar evento (admin) |
-
-## Usuario administrador
-
-Al iniciar el backend se crea automáticamente:
-
-- **Email:** admin@mainstage.co
-- **Contraseña:** admin123
-
-Accede al panel en `/admin` después de iniciar sesión.
 | GET | `/api/health` | Health check |
+| GET | `/api/events` | Lista eventos (filtros: `category`, `city`, `artist`, `date`, `search`, etc.) |
+| GET | `/api/events/:id` | Detalle de evento |
+| GET | `/api/events/:id/price-history` | Historial de cambios de precio |
+| GET | `/api/events/categories` | Categorías |
+| GET | `/api/events/cities` | Ciudades con eventos |
+| GET | `/api/resale` | Listado de reventas activas |
+| GET | `/api/tickets/verify/:code` | Consultar boleto por código QR |
+| POST | `/api/auth/register` | Registro |
+| POST | `/api/auth/login` | Inicio de sesión |
+
+### Autenticados
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/auth/me` | Perfil |
+| GET | `/api/events/:id/purchase-info` | Info de compra (límite restante, preventa) |
+| POST | `/api/orders` | Crear orden (solo eventos `isSellable`) |
+| GET | `/api/orders/my` | Mis compras |
+| GET | `/api/tickets/my/:orderId/qr` | QR de una orden |
+| GET | `/api/resale/my` | Mis publicaciones de reventa |
+| POST | `/api/resale` | Publicar boleto en reventa |
+| POST | `/api/resale/:id/buy` | Comprar reventa |
+| DELETE | `/api/resale/:id` | Cancelar publicación |
+
+### Admin
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/admin/stats` | Estadísticas de ventas |
+| GET | `/api/admin/orders` | Todas las órdenes |
+| GET | `/api/admin/users` | Usuarios registrados |
+| GET | `/api/admin/events` | Eventos (admin) |
+| POST | `/api/admin/events` | Crear evento |
+| PUT | `/api/admin/events/:id` | Editar evento |
+| DELETE | `/api/admin/events/:id` | Eliminar evento |
+| POST | `/api/tickets/verify/:code/use` | Marcar boleto como usado en puerta |
+
+## Eventos demo en el seed
+
+- **Estéreo Picnic** — venta directa MainStage (`isSellable: true`)
+- **Karol G** — referencia TuBoleta (CTA externo)
+- **Shakira / Carnaval de Barranquilla** — referencia Ticketmaster
 
 ## Ciudades con eventos
 

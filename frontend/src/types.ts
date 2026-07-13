@@ -29,6 +29,9 @@ export interface EventItem {
   discount: number;
   serviceFeePercent: number;
   salePhase: string;
+  source: string;
+  externalUrl: string;
+  isSellable: boolean;
   tags: string[];
   createdAt?: string;
   tiers?: TicketTier[];
@@ -145,6 +148,9 @@ export interface AdminEventPayload {
   discount?: number;
   serviceFeePercent?: number;
   salePhase?: string;
+  source?: string;
+  externalUrl?: string;
+  isSellable?: boolean;
   priceChangeReason?: string;
   tiers: TierInput[];
 }

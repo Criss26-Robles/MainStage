@@ -216,6 +216,17 @@
   text-align: center;
 }
 
+.ticket-form--external {
+  text-align: center;
+}
+
+.ticket-form__external-msg {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--gray-400);
+  margin-bottom: 20px;
+}
+
 .ticket-form__auth-prompt {
   padding: 32px 0;
   color: var(--gray-400);

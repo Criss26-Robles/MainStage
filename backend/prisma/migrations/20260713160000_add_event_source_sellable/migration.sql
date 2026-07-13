@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Event" ADD COLUMN "source" TEXT NOT NULL DEFAULT 'mainstage';
+ALTER TABLE "Event" ADD COLUMN "externalUrl" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "Event" ADD COLUMN "isSellable" BOOLEAN NOT NULL DEFAULT true;

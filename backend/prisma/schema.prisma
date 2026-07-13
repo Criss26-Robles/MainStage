@@ -41,6 +41,9 @@ model Event {
   discount          Int          @default(0)
   serviceFeePercent Int          @default(10)
   salePhase         String       @default("general")
+  source            String       @default("mainstage")
+  externalUrl       String       @default("")
+  isSellable        Boolean      @default(true)
   tags              String[]
   createdAt         DateTime     @default(now())
   orders           Order[]

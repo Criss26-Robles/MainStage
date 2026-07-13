@@ -94,6 +94,18 @@ export function getFinalPrice(price: number, discount = 0, serviceFeePercent = 0
   return unitPrice + getServiceFee(unitPrice, serviceFeePercent);
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  mainstage: 'MainStage',
+  tuboleta: 'TuBoleta',
+  ticketmaster: 'Ticketmaster',
+  bandsintown: 'Bandsintown',
+  manual: 'Referencia externa'
+};
+
+export function getEventSourceLabel(source: string): string {
+  return SOURCE_LABELS[source] ?? source;
+}
+
 export async function fetchPurchaseInfo(eventId: string | number): Promise<PurchaseInfo> {
   const res = await fetch(`${API_BASE}/events/${eventId}/purchase-info`, {
     headers: authHeaders()

@@ -22,6 +22,9 @@ interface SeedEvent {
   discount: number;
   serviceFeePercent?: number;
   salePhase?: string;
+  source?: string;
+  externalUrl?: string;
+  isSellable?: boolean;
   tags: string[];
 }
 
@@ -95,6 +98,8 @@ const events: SeedEvent[] = [
     popular: true,
     discount: 20,
     serviceFeePercent: 12,
+    source: 'mainstage',
+    isSellable: true,
     tags: ['Música', 'Festival', 'En vivo']
   },
   {
@@ -116,6 +121,9 @@ const events: SeedEvent[] = [
     discount: 15,
     serviceFeePercent: 10,
     salePhase: 'presale',
+    source: 'tuboleta',
+    externalUrl: 'https://www.tuboleta.com/',
+    isSellable: false,
     tags: ['Reggaetón', 'Concierto', 'Pop']
   },
   {
@@ -156,6 +164,9 @@ const events: SeedEvent[] = [
     discount: 10,
     serviceFeePercent: 8,
     salePhase: 'presale',
+    source: 'ticketmaster',
+    externalUrl: 'https://www.ticketmaster.co/',
+    isSellable: false,
     tags: ['Carnaval', 'Festival', 'Pop']
   },
   {
@@ -422,6 +433,9 @@ async function main() {
         ...event,
         serviceFeePercent: event.serviceFeePercent ?? 10,
         salePhase: event.salePhase ?? 'general',
+        source: event.source ?? 'mainstage',
+        externalUrl: event.externalUrl ?? '',
+        isSellable: event.isSellable ?? true,
         price,
         availableTickets,
         tiers: { create: tiers }
