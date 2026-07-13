@@ -4,6 +4,7 @@
   border-radius: var(--radius-lg);
   padding: 32px;
   backdrop-filter: blur(20px);
+  min-width: 0;
 }
 
 .ticket-form__title {
@@ -282,6 +283,7 @@
   font-size: 0.8rem;
   color: var(--gray-500);
   margin-top: 2px;
+  overflow-wrap: anywhere;
 }
 
 .ticket-form__tiers {
@@ -322,6 +324,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.98rem;
+  overflow-wrap: anywhere;
 }
 
 .tier-row__desc {
@@ -439,4 +442,55 @@
 .ticket-form__success-items li span:last-child {
   font-family: var(--font-price);
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .ticket-form {
+    padding: 22px 18px;
+    border-radius: var(--radius-md);
+  }
+
+  .ticket-form__price {
+    font-size: 1.5rem;
+    margin-bottom: 22px;
+  }
+
+  .tier-row {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .tier-row__controls {
+    width: 100%;
+  }
+
+  .tier-row__controls button {
+    flex: 1;
+  }
+
+  .tier-row__qty {
+    width: 52px;
+  }
+
+  .ticket-form__total {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ticket-form__summary-row,
+  .ticket-form__success-items li {
+    gap: 12px;
+  }
+
+  .ticket-form__summary-row span:first-child,
+  .ticket-form__success-items li span:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ticket-form--success {
+    padding: 36px 18px;
+  }
 }

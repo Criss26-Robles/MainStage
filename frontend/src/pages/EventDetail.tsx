@@ -15,7 +15,13 @@ export default function EventDetail() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [id]);
+
+  useEffect(() => {
     if (!id) return;
+    setLoading(true);
+    setError(false);
     fetchEvent(id)
       .then(setEvent)
       .catch(() => setError(true))
