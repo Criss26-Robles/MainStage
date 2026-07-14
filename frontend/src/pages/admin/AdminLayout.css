@@ -2,6 +2,7 @@
   display: flex;
   min-height: 100vh;
   background: var(--black);
+  overflow-x: hidden;
 }
 
 .admin-loading {
@@ -132,6 +133,7 @@
 
 .admin-main {
   flex: 1;
+  min-width: 0;
   margin-left: 240px;
   padding: 32px 40px;
   min-height: 100vh;
@@ -161,6 +163,7 @@
 }
 
 .admin-stat {
+  min-width: 0;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
@@ -180,6 +183,7 @@
   font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .admin-table-wrap {
@@ -398,19 +402,110 @@
   .admin-sidebar {
     position: static;
     width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    padding: 18px 16px 16px;
+    gap: 16px;
   }
 
   .admin-sidebar__nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     width: 100%;
+    flex: none;
   }
 
   .admin-main {
     margin-left: 0;
+    padding: 28px 16px 48px;
+    width: 100%;
+  }
+
+  .admin-sidebar__logo {
+    margin-bottom: 0;
+    padding: 0 0 14px;
+  }
+
+  .admin-sidebar__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem;
+  }
+
+  .admin-sidebar__footer {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px 12px;
+    padding-top: 14px;
+  }
+
+  .admin-sidebar__user {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  .admin-sidebar__back,
+  .admin-sidebar__logout {
+    margin: 0;
+    padding: 8px 0;
+    font-size: 0.78rem;
+  }
+
+  .admin-sidebar__logout {
+    width: auto;
+    text-align: right;
+  }
+
+  .admin-page__header {
+    margin-bottom: 24px;
+  }
+
+  .admin-page__header h1 {
+    font-size: 1.6rem;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .admin-stat {
+    padding: 22px;
+  }
+
+  .admin-stat__value {
+    font-size: clamp(1.45rem, 9vw, 2rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-sidebar {
+    padding: 16px 14px 14px;
+  }
+
+  .admin-sidebar__nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-sidebar__link {
+    font-size: 0.78rem;
+  }
+
+  .admin-main {
+    padding-inline: 14px;
+  }
+
+  .admin-stat {
+    padding: 20px;
   }
 }
 
