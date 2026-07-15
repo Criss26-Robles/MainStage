@@ -165,6 +165,27 @@ export interface PriceHistoryEntry {
   createdAt: string;
 }
 
+export interface EventReview {
+  id: number;
+  userId: number;
+  eventId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: number;
+    name: string;
+    role: string;
+  };
+}
+
+export interface EventReviewsResponse {
+  reviews: EventReview[];
+  averageRating: number;
+  totalReviews: number;
+}
+
 export interface PurchaseInfo {
   purchasedQty: number;
   maxAllowed: number;

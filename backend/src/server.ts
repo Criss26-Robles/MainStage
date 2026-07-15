@@ -12,6 +12,7 @@ import adminRouter from './routes/admin';
 import ticketsRouter from './routes/tickets';
 import resaleRouter from './routes/resale';
 import favoritesRouter from './routes/favorites';
+import reviewsRouter from './routes/reviews';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -46,6 +47,7 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/resale', resaleRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/reviews', reviewsRouter);
 app.use('/api/admin', adminRouter);
 
 seedAdmin()

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import TicketForm from '../components/TicketForm';
 import PriceHistory from '../components/PriceHistory';
 import FavoriteButton from '../components/FavoriteButton';
+import EventReviews from '../components/EventReviews';
 import { fetchEvent, formatDate, formatPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { heroImageProps } from '../utils/imageUrl';
@@ -146,6 +147,7 @@ export default function EventDetail() {
           </div>
 
           <PriceHistory eventId={event.id} />
+          <EventReviews eventId={event.id} />
         </motion.div>
 
         <motion.div

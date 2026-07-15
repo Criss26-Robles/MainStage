@@ -12,7 +12,9 @@ import type {
   TicketVerification,
   OrderQrResponse,
   PriceHistoryEntry,
-  ResaleListing
+  ResaleListing,
+  EventReview,
+  EventReviewsResponse
 } from '../types';
 
 const API_BASE = '/api';
@@ -158,6 +160,33 @@ export async function addFavorite(eventId: string | number): Promise<EventItem> 
 
 export async function removeFavorite(eventId: string | number): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/favorites/${eventId}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
+  return handleResponse<{ message: string }>(res);
+}
+
+export async function fetchEventReviews(eventId: string | number): Promise<EventReviewsResponse> {
+  const res = await fetch(`${API_BASE}/reviews/event/${eventId}`);
+  if (!res.ok) throw new Error('No se pudieron cargar las opiniones');
+  return res.json();
+}
+
+export async function saveEventReview(
+  eventId: string | number,
+  rating: number,
+  comment: string
+): Promise<EventReview> {
+  const res = await fetch(`${API_BASE}/reviews/event/${eventId}`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ rating, comment })
+  });
+  return handleResponse<EventReview>(res);
+}
+
+export async function deleteEventReview(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/reviews/${id}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
