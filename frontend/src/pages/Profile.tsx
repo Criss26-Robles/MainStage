@@ -4,18 +4,23 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import {
   fetchMyOrders,
+  fetchFavoriteEvents,
   formatPrice,
   formatDate,
-  createResaleListing
+  createResaleListing,
+  getFinalPrice,
+  removeFavorite
 } from '../services/api';
 import OrderQr from '../components/OrderQr';
-import type { Order } from '../types';
+import type { EventItem, Order } from '../types';
 import './Profile.css';
 
 export default function Profile() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [favoriteEvents, setFavoriteEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [resaleError, setResaleError] = useState('');
   const navigate = useNavigate();
 
@@ -31,6 +36,11 @@ export default function Profile() {
         .then(setOrders)
         .catch(console.error)
         .finally(() => setLoading(false));
+
+      fetchFavoriteEvents()
+        .then(setFavoriteEvents)
+        .catch(console.error)
+        .finally(() => setFavoritesLoading(false));
     }
   }, [isAuthenticated]);
 
@@ -57,6 +67,15 @@ export default function Profile() {
 
   const canResell = (order: Order) =>
     order.status === 'active' && !order.qrUsed;
+
+  const handleRemoveFavorite = async (eventId: number) => {
+    try {
+      await removeFavorite(eventId);
+      setFavoriteEvents((current) => current.filter((event) => event.id !== eventId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (authLoading || !user) {
     return (
@@ -148,6 +167,50 @@ export default function Profile() {
             ))}
           </div>
         )}
+
+        <section className="profile-page__favorites">
+          <div className="profile-page__section-head">
+            <h2 className="profile-page__section-title">Eventos guardados</h2>
+            <Link to="/eventos" className="profile-page__section-link">Explorar eventos</Link>
+          </div>
+
+          {favoritesLoading ? (
+            <div className="profile-page__skeleton" />
+          ) : favoriteEvents.length === 0 ? (
+            <div className="profile-page__empty profile-page__empty--compact">
+              <p>No tienes eventos guardados todavia</p>
+            </div>
+          ) : (
+            <div className="profile-favorites">
+              {favoriteEvents.map((event) => (
+                <article key={event.id} className="profile-favorite">
+                  <Link to={`/evento/${event.id}`} className="profile-favorite__image-link">
+                    <img src={event.image} alt={event.title} className="profile-favorite__image" />
+                  </Link>
+                  <div className="profile-favorite__body">
+                    <span className="profile-favorite__category">{event.category}</span>
+                    <Link to={`/evento/${event.id}`} className="profile-favorite__title">
+                      {event.title}
+                    </Link>
+                    <p className="profile-favorite__meta">
+                      {event.city} · {formatDate(event.date)}
+                    </p>
+                    <p className="profile-favorite__price">
+                      {formatPrice(getFinalPrice(event.price, event.discount, event.serviceFeePercent ?? 10))}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="profile-favorite__remove"
+                    onClick={() => handleRemoveFavorite(event.id)}
+                  >
+                    Quitar
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

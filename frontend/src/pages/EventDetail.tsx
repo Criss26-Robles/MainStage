@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TicketForm from '../components/TicketForm';
 import PriceHistory from '../components/PriceHistory';
+import FavoriteButton from '../components/FavoriteButton';
 import { fetchEvent, formatDate, formatPrice, getFinalPrice } from '../services/api';
 import type { EventItem } from '../types';
 import { heroImageProps } from '../utils/imageUrl';
@@ -87,7 +88,10 @@ export default function EventDetail() {
             ))}
           </div>
 
-          <h1 className="event-detail__title">{event.title}</h1>
+          <div className="event-detail__title-row">
+            <h1 className="event-detail__title">{event.title}</h1>
+            <FavoriteButton eventId={event.id} />
+          </div>
           <p className="event-detail__artist">{event.artist}</p>
 
           <div className="event-detail__meta-grid">

@@ -134,6 +134,36 @@ export async function fetchEvent(id: string | number): Promise<EventItem> {
   return res.json();
 }
 
+export async function fetchFavoriteEvents(): Promise<EventItem[]> {
+  const res = await fetch(`${API_BASE}/favorites`, {
+    headers: authHeaders()
+  });
+  return handleResponse<EventItem[]>(res);
+}
+
+export async function fetchFavoriteIds(): Promise<number[]> {
+  const res = await fetch(`${API_BASE}/favorites/ids`, {
+    headers: authHeaders()
+  });
+  return handleResponse<number[]>(res);
+}
+
+export async function addFavorite(eventId: string | number): Promise<EventItem> {
+  const res = await fetch(`${API_BASE}/favorites/${eventId}`, {
+    method: 'POST',
+    headers: authHeaders()
+  });
+  return handleResponse<EventItem>(res);
+}
+
+export async function removeFavorite(eventId: string | number): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/favorites/${eventId}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
+  return handleResponse<{ message: string }>(res);
+}
+
 export async function fetchPriceHistory(eventId: string | number): Promise<PriceHistoryEntry[]> {
   const res = await fetch(`${API_BASE}/events/${eventId}/price-history`);
   if (!res.ok) throw new Error('No se pudo cargar el historial de precios');

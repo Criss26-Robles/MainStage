@@ -18,6 +18,7 @@ model User {
   orders        Order[]
   resalesSold   Resale[] @relation("ResaleSeller")
   resalesBought Resale[] @relation("ResaleBuyer")
+  favorites     Favorite[]
 }
 
 model Event {
@@ -49,6 +50,18 @@ model Event {
   orders           Order[]
   tiers            TicketTier[]
   priceHistory     PriceHistory[]
+  favorites        Favorite[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  eventId   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
 }
 
 model TicketTier {
