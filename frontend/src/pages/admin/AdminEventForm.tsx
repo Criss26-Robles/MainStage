@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchAdminEvents, createAdminEvent, updateAdminEvent } from '../../services/api';
 import type { AdminEventPayload } from '../../types';
+import CalendarDatePicker from '../../components/CalendarDatePicker';
 import ImageFocusPicker from '../../components/admin/ImageFocusPicker';
 import './AdminLayout.css';
 
@@ -254,6 +255,11 @@ export default function AdminEventForm() {
       return;
     }
 
+    if (!form.date) {
+      setError('Selecciona la fecha del evento');
+      return;
+    }
+
     const newMinPrice = Math.min(...cleanedTiers.map(t => t.price));
     if (isEdit && originalMinPrice !== null && newMinPrice !== originalMinPrice && !priceChangeReason.trim()) {
       setError('Indica el motivo del cambio de precio');
@@ -340,7 +346,14 @@ export default function AdminEventForm() {
         <div className="admin-form__row">
           <div className="admin-form__field">
             <label>Fecha</label>
-            <input type="date" required value={form.date} onChange={e => handleChange('date', e.target.value)} />
+            <CalendarDatePicker
+              id="admin-event-date"
+              value={form.date}
+              variant="field"
+              placeholder="Seleccionar fecha"
+              onOpen={() => setOpenSelect(null)}
+              onChange={(value) => handleChange('date', value)}
+            />
           </div>
           <div className="admin-form__field">
             <label>Hora</label>

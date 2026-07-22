@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fetchCategories, fetchCities } from '../services/api';
 import type { City } from '../types';
+import CalendarDatePicker from './CalendarDatePicker';
 import './EventSearch.css';
 
 interface SearchFilters {
@@ -266,11 +267,13 @@ export default function EventSearch({
             </svg>
             Fecha
           </label>
-          <input
+          <CalendarDatePicker
             id="search-date"
-            type="date"
             value={filters.date}
-            onChange={(e) => handleChange('date', e.target.value)}
+            variant="embedded"
+            placeholder="dd/mm/aaaa"
+            onOpen={() => setOpenSelect(null)}
+            onChange={(value) => handleChange('date', value)}
           />
         </div>
       </div>
