@@ -5,6 +5,30 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import './Auth.css';
 
+const EMAIL_ALREADY_REGISTERED_MESSAGE =
+  'Este correo ya se encuentra registrado. Inicia sesión o usa otro correo.';
+
+function getRegisterErrorMessage(err: unknown): string {
+  const message =
+    err instanceof Error
+      ? err.message
+      : typeof err === 'string'
+        ? err
+        : err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+          ? err.message
+          : '';
+
+  const normalizedMessage = message.toLowerCase();
+  if (
+    normalizedMessage.includes('registrad') &&
+    (normalizedMessage.includes('email') || normalizedMessage.includes('correo'))
+  ) {
+    return EMAIL_ALREADY_REGISTERED_MESSAGE;
+  }
+
+  return message || 'Error al crear la cuenta';
+}
+
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,7 +59,7 @@ export default function Register() {
       await register(name, email, password);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear la cuenta');
+      setError(getRegisterErrorMessage(err));
     } finally {
       setLoading(false);
     }
