@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchAdminEvents, createAdminEvent, updateAdminEvent } from '../../services/api';
@@ -34,7 +34,34 @@ interface TierRow {
   description: string;
 }
 
+interface AdminSelectOption {
+  value: string;
+  label: string;
+}
+
+interface AdminSelectProps {
+  id: string;
+  name: string;
+  value: string;
+  options: AdminSelectOption[];
+  isOpen: boolean;
+  onToggle: (name: string) => void;
+  onChange: (value: string) => void;
+}
+
 const CATEGORIES = ['Concierto', 'Festival', 'Teatro', 'Museo', 'Comedia', 'Electrónica'];
+const CATEGORY_OPTIONS = CATEGORIES.map(category => ({ value: category, label: category }));
+const SALE_PHASE_OPTIONS = [
+  { value: 'general', label: 'Venta general' },
+  { value: 'presale', label: 'Preventa (solo miembros)' }
+];
+const SOURCE_OPTIONS = [
+  { value: 'mainstage', label: 'MainStage (venta directa)' },
+  { value: 'tuboleta', label: 'TuBoleta (referencia)' },
+  { value: 'ticketmaster', label: 'Ticketmaster (referencia)' },
+  { value: 'bandsintown', label: 'Bandsintown (referencia)' },
+  { value: 'manual', label: 'Manual / otro' }
+];
 
 const EMPTY: EventFormState = {
   title: '', artist: '', category: 'Concierto', date: '', time: '',
@@ -46,10 +73,68 @@ const EMPTY: EventFormState = {
 
 const EMPTY_TIER: TierRow = { name: '', price: '', available: '', description: '' };
 
+function AdminSelect({
+  id,
+  name,
+  value,
+  options,
+  isOpen,
+  onToggle,
+  onChange
+}: AdminSelectProps) {
+  const selectedLabel = options.find(option => option.value === value)?.label || options[0]?.label || '';
+
+  return (
+    <div className={`admin-form__select ${isOpen ? 'admin-form__select--open' : ''}`}>
+      <button
+        id={id}
+        type="button"
+        className="admin-form__select-trigger"
+        onClick={() => onToggle(name)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span>{selectedLabel}</span>
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden>
+          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="admin-form__select-menu" role="listbox" aria-labelledby={id}>
+          {options.map(option => {
+            const active = option.value === value;
+            return (
+              <button
+                key={`${name}-${option.value}`}
+                type="button"
+                className={`admin-form__select-option ${
+                  active ? 'admin-form__select-option--active' : ''
+                }`}
+                onClick={() => onChange(option.value)}
+                role="option"
+                aria-selected={active}
+              >
+                <span>{option.label}</span>
+                {active && (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminEventForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const formRef = useRef<HTMLFormElement>(null);
   const [form, setForm] = useState<EventFormState>(EMPTY);
   const [tiers, setTiers] = useState<TierRow[]>([{ name: 'General', price: '', available: '', description: '' }]);
   const [imageFocusX, setImageFocusX] = useState(50);
@@ -59,6 +144,26 @@ export default function AdminEventForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEdit);
+  const [openSelect, setOpenSelect] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) {
+        setOpenSelect(null);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenSelect(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -115,6 +220,11 @@ export default function AdminEventForm() {
       }
       return next;
     });
+  };
+
+  const handleSelectChange = (field: keyof EventFormState, value: string) => {
+    handleChange(field, value);
+    setOpenSelect(null);
   };
 
   const updateTier = (index: number, field: keyof TierRow, value: string) => {
@@ -200,7 +310,7 @@ export default function AdminEventForm() {
         <p>{isEdit ? 'Modifica los datos del evento' : 'Completa la información para publicar'}</p>
       </div>
 
-      <form className="admin-form" onSubmit={handleSubmit}>
+      <form ref={formRef} className="admin-form" onSubmit={handleSubmit}>
         {error && <div className="admin-form__error">{error}</div>}
 
         <div className="admin-form__field">
@@ -215,9 +325,15 @@ export default function AdminEventForm() {
           </div>
           <div className="admin-form__field">
             <label>Categoría</label>
-            <select value={form.category} onChange={e => handleChange('category', e.target.value)}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <AdminSelect
+              id="admin-event-category"
+              name="category"
+              value={form.category}
+              options={CATEGORY_OPTIONS}
+              isOpen={openSelect === 'category'}
+              onToggle={(name) => setOpenSelect(current => (current === name ? null : name))}
+              onChange={(value) => handleSelectChange('category', value)}
+            />
           </div>
         </div>
 
@@ -259,10 +375,15 @@ export default function AdminEventForm() {
           </div>
           <div className="admin-form__field">
             <label>Fase de venta</label>
-            <select value={form.salePhase} onChange={e => handleChange('salePhase', e.target.value)}>
-              <option value="general">Venta general</option>
-              <option value="presale">Preventa (solo miembros)</option>
-            </select>
+            <AdminSelect
+              id="admin-event-sale-phase"
+              name="salePhase"
+              value={form.salePhase}
+              options={SALE_PHASE_OPTIONS}
+              isOpen={openSelect === 'salePhase'}
+              onToggle={(name) => setOpenSelect(current => (current === name ? null : name))}
+              onChange={(value) => handleSelectChange('salePhase', value)}
+            />
           </div>
         </div>
 
@@ -280,13 +401,15 @@ export default function AdminEventForm() {
         <div className="admin-form__row">
           <div className="admin-form__field">
             <label>Fuente del evento</label>
-            <select value={form.source} onChange={e => handleChange('source', e.target.value)}>
-              <option value="mainstage">MainStage (venta directa)</option>
-              <option value="tuboleta">TuBoleta (referencia)</option>
-              <option value="ticketmaster">Ticketmaster (referencia)</option>
-              <option value="bandsintown">Bandsintown (referencia)</option>
-              <option value="manual">Manual / otro</option>
-            </select>
+            <AdminSelect
+              id="admin-event-source"
+              name="source"
+              value={form.source}
+              options={SOURCE_OPTIONS}
+              isOpen={openSelect === 'source'}
+              onToggle={(name) => setOpenSelect(current => (current === name ? null : name))}
+              onChange={(value) => handleSelectChange('source', value)}
+            />
           </div>
           <div className="admin-form__field">
             <label>URL oficial de boletas</label>
