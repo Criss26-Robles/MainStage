@@ -1,19 +1,53 @@
-# Producción: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+# Despliegue en servidor (producción):
+#   docker compose -f docker-compose.prod.yml up --build -d
+#
+# App: http://SERVIDOR:8080  (nginx → frontend + proxy /api → backend)
+
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: mainstage-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-mainstage}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mainstage}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
-      target: production
+      target: runner
+    container_name: mainstage-backend
+    restart: unless-stopped
     environment:
       NODE_ENV: production
-      SEED_ON_START: "false"
-    volumes: []
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mainstage}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-mainstage-change-me-in-production}
+      SEED_ON_START: ${SEED_ON_START:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    # API solo en red interna; el acceso público va por nginx (frontend:8080/api)
 
   frontend:
     build:
       context: ./frontend
-      target: production
+      target: runner
+    container_name: mainstage-frontend
+    restart: unless-stopped
     ports:
-      - "8080:80"
-    environment: {}
-    volumes: []
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

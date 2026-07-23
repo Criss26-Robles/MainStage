@@ -4,7 +4,8 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 # openssl: Prisma engines on Alpine
-RUN apk add --no-cache openssl
+# python3/make/g++: toolchain por si hay módulos nativos (bcrypt, etc.)
+RUN apk add --no-cache openssl python3 make g++
 
 COPY package.json package-lock.json ./
 
@@ -50,7 +51,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "dev"]
 
 # ---- Stage 3: minimal runtime image ----
-FROM node:22-alpine AS production
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 

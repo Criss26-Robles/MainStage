@@ -75,11 +75,41 @@ docker compose up --build
 
 El backend aplica migraciones y ejecuta el seed automáticamente al iniciar (`SEED_ON_START=true`).
 
-Para producción:
+### Despliegue en servidor (producción)
+
+Archivos clave:
+
+| Archivo | Rol |
+|---------|-----|
+| `backend/Dockerfile` | Multi-stage `deps` → `builder` → `runner` (tini, usuario no-root, healthcheck) |
+| `frontend/Dockerfile` | Multi-stage `deps` → `builder` → `runner` (nginx) |
+| `backend/docker-entrypoint.sh` | Migraciones (+ seed opcional) al arrancar |
+| `docker-compose.yml` | Desarrollo local con hot reload |
+| `docker-compose.prod.yml` | Stack completo para servidor |
+
+En el servidor:
 
 ```bash
-docker compose -f docker-compose.prod.yml up --build
+docker compose -f docker-compose.prod.yml up --build -d
 ```
+
+| Servicio | URL |
+|----------|-----|
+| App (frontend + `/api`) | http://SERVIDOR:8080 |
+| PostgreSQL | solo red interna Docker |
+
+Variables opcionales (`.env` junto al compose):
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=cambia-esto
+POSTGRES_DB=mainstage
+JWT_SECRET=cambia-esto-tambien
+APP_PORT=8080
+SEED_ON_START=false
+```
+
+Para cargar datos demo en el primer arranque: `SEED_ON_START=true`.
 
 ## Inicio rápido local (sin Docker)
 
