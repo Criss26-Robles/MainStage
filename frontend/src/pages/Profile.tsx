@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -22,6 +23,9 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [resaleError, setResaleError] = useState('');
+  const [resaleOrder, setResaleOrder] = useState<Order | null>(null);
+  const [resalePrice, setResalePrice] = useState('');
+  const [resaleSubmitting, setResaleSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,24 +48,41 @@ export default function Profile() {
     }
   }, [isAuthenticated]);
 
-  const handleResell = async (order: Order) => {
-    const input = window.prompt(
-      `¿A qué precio quieres publicar "${order.eventTitle}"? (COP)`,
-      String(order.totalPrice)
-    );
-    if (!input) return;
-    const askPrice = parseInt(input.replace(/\D/g, ''), 10);
+  const openResaleModal = (order: Order) => {
+    setResaleError('');
+    setResaleOrder(order);
+    setResalePrice(String(order.totalPrice));
+  };
+
+  const closeResaleModal = () => {
+    if (resaleSubmitting) return;
+    setResaleOrder(null);
+    setResalePrice('');
+    setResaleError('');
+  };
+
+  const handleResell = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!resaleOrder) return;
+
+    const askPrice = parseInt(resalePrice.replace(/\D/g, ''), 10);
     if (!askPrice || askPrice <= 0) {
-      setResaleError('Precio inválido');
+      setResaleError('Ingresa un precio válido para publicar tu boleto en reventa.');
       return;
     }
+
     setResaleError('');
+    setResaleSubmitting(true);
     try {
-      await createResaleListing(order.id, askPrice);
+      await createResaleListing(resaleOrder.id, askPrice);
       const updated = await fetchMyOrders();
       setOrders(updated);
+      setResaleOrder(null);
+      setResalePrice('');
     } catch (err) {
       setResaleError(err instanceof Error ? err.message : 'No se pudo publicar en reventa');
+    } finally {
+      setResaleSubmitting(false);
     }
   };
 
@@ -115,7 +136,7 @@ export default function Profile() {
       <div className="container profile-page__content">
         <h2 className="profile-page__section-title">Mis compras</h2>
 
-        {resaleError && <p className="profile-page__resale-error">{resaleError}</p>}
+        {resaleError && !resaleOrder && <p className="profile-page__resale-error">{resaleError}</p>}
 
         {loading ? (
           <div className="profile-page__skeleton" />
@@ -156,7 +177,7 @@ export default function Profile() {
                     <button
                       type="button"
                       className="btn btn-outline profile-order__resell"
-                      onClick={() => handleResell(order)}
+                      onClick={() => openResaleModal(order)}
                     >
                       Revender
                     </button>
@@ -212,6 +233,57 @@ export default function Profile() {
           )}
         </section>
       </div>
+
+      {resaleOrder && (
+        <div className="profile-resale-modal" role="dialog" aria-modal="true" aria-labelledby="resale-modal-title">
+          <form className="profile-resale-modal__card" onSubmit={handleResell}>
+            <button
+              type="button"
+              className="profile-resale-modal__close"
+              onClick={closeResaleModal}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <span className="profile-resale-modal__eyebrow">Reventa MainStage</span>
+            <h2 id="resale-modal-title">Publicar boleto en reventa</h2>
+            <p className="profile-resale-modal__copy">
+              Define el precio de publicación para tu entrada. Otros usuarios podrán verla en la sección de reventa.
+            </p>
+
+            <div className="profile-resale-modal__event">
+              <strong>{resaleOrder.eventTitle}</strong>
+              <span>{resaleOrder.eventCity} · {formatDate(resaleOrder.eventDate)}</span>
+            </div>
+
+            <label className="profile-resale-modal__field">
+              <span>Precio de publicación</span>
+              <div className="profile-resale-modal__input-wrap">
+                <span>COP</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={resalePrice}
+                  onChange={(e) => setResalePrice(e.target.value)}
+                  placeholder="Ej: 350000"
+                  autoFocus
+                />
+              </div>
+            </label>
+
+            {resaleError && <p className="profile-resale-modal__error">{resaleError}</p>}
+
+            <div className="profile-resale-modal__actions">
+              <button type="button" className="btn btn-outline" onClick={closeResaleModal} disabled={resaleSubmitting}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={resaleSubmitting}>
+                {resaleSubmitting ? 'Publicando...' : 'Publicar reventa'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
